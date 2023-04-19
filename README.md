@@ -1,4 +1,4 @@
-This is a repository for accompanying codebase of the manuscript"
+This is a repository for accompanying codebase of the manuscript:
 
 "Sequence characteristics and an accurate model of high-occupancy target loci in the human genome" S. Hudaiberdiev and I. Ovcharenko
 
