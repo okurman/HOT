@@ -36,9 +36,8 @@ A) `log_bins.plots.plot_bins_loci_stats_2()`\
 B) `HOTs.TF_enrichments.plot_enrichments_jointplot_size()`\
 C) `HOTs.plots.hots_prom_enh_barplot()`\
 D) `HOTs.plots.plot_ATAC()`\
-C) `toto`\
-D) `toto`\
-E) `toto`\
+E) `HOTs.SE_analysis.draw_UpSet_SE_HOT_RE_HM()`
+
 ### PCA analysis of HOT loci.
 ***
 
