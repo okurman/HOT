@@ -11,22 +11,22 @@ from pybedtools import BedTool
 import warnings
 warnings.filterwarnings('ignore')
 
-EXONS_FILE = "/panfs/pan1/patternquest/data/genomes/hg19/annotations/exon_regions.bed"
-PROMOTERS_FILE = "/panfs/pan1/patternquest/data/genomes/hg19/annotations/genes/gencode/knownCanonical.alternative_TSS.liftOver_hg19.bed"
-INTRONS_FILE = "/panfs/pan1/patternquest/data/genomes/hg19/annotations/genes/gencode/knownGene_introns.liftOver_hg19.bed"
-CODING_PROMOTERS_FILE = "/panfs/pan1/patternquest/data/genomes/hg19/annotations/genes/gencode/knownCanonical.alternative_TSS.liftOver_hg19.bed.coding"
-NONCODING_PROMOTERS_FILE = "/panfs/pan1/patternquest/data/genomes/hg19/annotations/genes/gencode/knownCanonical.alternative_TSS.liftOver_hg19.bed.noncoding"
+DATA_PATH = "data/"
 
-DATA_PATH = "/net/intdev/devdcode/sanjar/overbinders"
-PERC_BINS_DIR = os.path.join(DATA_PATH, "definitions/peak_8bp_v2/perc_bins/")
-LOG_BINS_DIR = os.path.join(DATA_PATH, "definitions/peak_8bp_v2/log_bins/")
+# TSS-related annotation files extracted from knownGene table from UCSC Genome Browser database.
+# refer to the methods for details.
+EXONS_FILE = join(DATA_PATH, "hg19_files/exon_regions.bed")
+PROMOTERS_FILE = join(DATA_PATH, "hg19_files/knownCanonical.alternative_TSS.bed")
+INTRONS_FILE = join(DATA_PATH, "hg19_files/knownGene_introns.bed")
+CODING_PROMOTERS_FILE = join(DATA_PATH, "hg19_files/knownCanonical.alternative_TSS.bed.coding")
+NONCODING_PROMOTERS_FILE = join(DATA_PATH, "hg19_files/knownCanonical.alternative_TSS.bed.noncoding")
+
+LOG_BINS_DIR = join(DATA_PATH, "log_bins/")
 PEAKS_DIR = join(DATA_PATH, "chipseq_files/peaks/")
-LOCI_DIR = join(DATA_PATH, "chipseq_files/loci_v2/")
+LOCI_DIR = join(DATA_PATH, "chipseq_files/loci/")
 
 import subprocess as sp
-# from overbinders.data_prep.basic import load_metadata
-# from basic import load_metadata
-# from data_prep.basic import load_metadata
+from basic import load_metadata
 
 
 """
@@ -131,27 +131,6 @@ def add_stats_columns(cell_line="HepG2"):
                                   r.fields[6])
 
             of.write(out_line)
-
-
-def extract_to_bins_perc(cell_line="HepG2"):
-
-    locus_file = os.path.join(LOCI_DIR, "%s_400_loci.bed" % cell_line)
-
-    tmp_file = join(LOCI_DIR, "tmp.txt")
-    cmd = "sed -n '1d;p' %s | sort -k6,6n > %s"
-    subprocess.call(cmd % (locus_file, tmp_file), shell=True)
-    shutil.move(tmp_file, locus_file)
-
-    fnames = ["%s_400_loci.%d.bed" % (cell_line, i) for i in range(10)]
-    lines = open(locus_file).readlines()
-
-    block_size = len(lines)//10
-    blocks = [lines[i: i+block_size] for i in range(0, len(lines), block_size)]
-
-    for block, fname in zip(blocks, fnames):
-        print(fname)
-        with open(join(PERC_BINS_DIR, fname), "w") as of:
-            [of.write(l) for l in block]
 
 
 def extract_to_log_bins(cell_line="HepG2"):
