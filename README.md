@@ -12,9 +12,8 @@ https://www.biorxiv.org/content/10.1101/2023.02.05.527203v1
 Data Repository
 -------
 
-Processed data are available in the Zenodo repository.
-
-https://zenodo.org/records/7845121
+Processed data are available in the Zenodo repository (https://zenodo.org/records/7845121).  
+Download and extract to the `data` directory
 
 For running the code, create a python virtual environment using python>3.6 and install the requirements\
 `python3 -m pip install -r requirements.txt`
@@ -33,7 +32,13 @@ for cl in ["HepG", "K562", "H1"]:
 
 <img src="./data/Figure1.png" width="480">
 
-
+A) `log_bins.plots.plot_bins_loci_stats_2()`\
+B) `HOTs.TF_enrichments.plot_enrichments_jointplot_size()`\
+C) `HOTs.plots.hots_prom_enh_barplot()`\
+D) `HOTs.plots.plot_ATAC()`\
+C) `toto`\
+D) `toto`\
+E) `toto`\
 ### PCA analysis of HOT loci.
 ***
 
