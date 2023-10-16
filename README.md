@@ -20,7 +20,7 @@ For running the code, create a python virtual environment using python>3.6 and i
 
 Transcription factor ChIP-seq files used in the study are listed in the metadata file `metadata_HepG2_K569_H1.txt` (downloaded from ENCODE portal after applying the filters) 
 
-To re-create the study, download of the narrow peak files listed in the metadata and run the following 
+To re-create the study, download of the narrow peak files listed in the metadata. Open an iPython console and navigate to the project directory and run: 
 
 ```
 for cl in ["HepG", "K562", "H1"]:
