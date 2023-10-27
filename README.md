@@ -43,21 +43,24 @@ E) `HOTs.SE_analysis.draw_UpSet_SE_HOT_RE_HM()`
 
 <img src="./data/Figure2.png" width="400">
 
+A, B, C) `HOTs.PCA_analysis.plot_pca_1vs2_tfs()`\
+D) `See supplemental materials`
+
 ### Evolutionary conservation scores (phastCons, phyloP).
 ***
 
 <img src="./data/Figure3.png" width="450">
+
+A, B) `log_bins.plots.plot_phastcons_distribution()`\
+
 
 ### Functional analysis (GO enrichment, housekeeping, tissue-specificity).
 ***
 
 <img src="./data/Figure4.png" width="450">
 
-### Variant analyses of the HOT loci.
-***
-
-
-### Classification analyses of the HOT loci.
-***
+A) `HOTs.HK_genes_analysis.plot_fractions_merged()`
+A) `HOTs.HK_genes_analysis.plot_tau_single_cl()`
+C) `refer to supplemental materials. GO terms and p-values were obtained from GREAT tool`
 
 
