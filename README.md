@@ -40,7 +40,7 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 ***
 #### Figure 1: Definition of HOT loci and compositional analyses
 
-<img src="./data/Figure1.png" width="480">
+<img src="./src_figures/Figure1.png" width="480">
 
 `cd plots`\
 `python figure_1.py`
@@ -49,7 +49,7 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 ***
 #### Figure 2: PCA analysis of HOT loci.
 
-<img src="./data/Figure2.png" width="400">
+<img src="./src_figures/Figure2.png" width="400">
 
 `cd plots`\
 `python figure_2.py`
@@ -58,7 +58,7 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 ***
 #### Figure 3: Hi-C analysis of the HOT loci.
 
-<img src="./data/Figure3.png" width="450">
+<img src="./src_figures/Figure3.png" width="450">
 
 `cd plots`\
 `python figure_3.py`
@@ -67,7 +67,7 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 ***
 #### Figure 4: ChIP-seq signal strength analysis.
 
-<img src="./data/Figure4.png" width="450">
+<img src="./src_figures/Figure4.png" width="450">
 
 `cd plots`\
 `python figure_4.py`
@@ -76,7 +76,7 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 ***
 #### Figure 5: Evolutionary conservation scores (phastCons, phyloP) and classification analysis.
 
-<img src="./data/Figure5.png" width="450">
+<img src="./src_figures/Figure5.png" width="450">
 
 `cd data_pred`\
 `python phastCons.py`
@@ -93,7 +93,7 @@ For Figure5-D, please refer to `Classification analysis of HOT loci`
 ***
 #### Figure 6: Functional analysis (GO enrichment, housekeeping, tissue-specificity).
 
-<img src="./data/Figure6.png" width="450">
+<img src="./src_figures/Figure6.png" width="450">
 
 `cd plots`\
 `python figure_6.py`
