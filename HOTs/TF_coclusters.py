@@ -1,53 +1,34 @@
-import subprocess
-import warnings
-from collections import defaultdict
 
-import pandas as pd
-
-warnings.filterwarnings('ignore')
 
 import sys
+sys.path.append("../")
 import os
 from os.path import join
-
+import warnings
+warnings.filterwarnings('ignore')
 import numpy as np
-import configparser
-
-###############################################################
-config_file = os.path.join(os.path.expanduser('~'), 'paths.cfg')
-cfg = configparser.ConfigParser()
-cfg.read(config_file)
-
-code_path = cfg.get('enhancers', 'code_path')
-sys.path.append(code_path)
-###############################################################
-
 from pybedtools import BedTool
 import pandas
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
-# matplotlib.style.use('ggplot')
 import seaborn as sns
+from pathlib import Path
 
-from overbinders.data_prep.basic import load_metadata
+from data_prep.basic import load_metadata
 
-PROJECT_DIR = "ROOT_DIR/"
+DATA_PATH = Path("../data/data/")
+PLOTS_DIR = DATA_PATH/"plots/"
+LOCI_DIR = DATA_PATH/"HOTs/"
 
-LOCI_DIR = "ROOT_DIR/definitions/peak_8bp_v2/HOTs"
-PLOTS_DIR = "ROOT_DIR/plots/HOTs/"
 
+def clusterplot_by_percentage_full(save_file):
 
-def clusterplot_by_percentage_full():
-
-    data_file = join(LOCI_DIR, "enrichment_files/tf_stats_summary_table.txt")
+    data_file = DATA_PATH/"src_files/tf_stats_summary_table.txt"
     df = pandas.read_table(data_file)
     df = df[df["cell_line"] == "HepG2"].reset_index(drop=True)
 
-    return df
-
     df = df[["tf", "enh_fracs", "prom_fracs"]]
-    # df = df[["tf", "all_fracs", "enh_fracs", "prom_fracs"]]
-    # df = df[["tf", "pk_fracs_enh", "pk_fracs_prom"]]
 
     tfs = df.pop("tf").values
 
@@ -61,16 +42,17 @@ def clusterplot_by_percentage_full():
     g.ax_heatmap.axes.set_yticklabels(tf_labels, size=1)
     g.ax_heatmap.axes.set_xticklabels(["HOT enh (%)", "HOT prom (%)"], rotation=45, ha="right")
     reor_ind = g.dendrogram_row.reordered_ind
-    for i in reor_ind:
-        print(i, tfs[i], df.loc[i].values)
+    # for i in reor_ind:
+    #     print(i, tfs[i], df.loc[i].values)
 
-    save_file = join(PLOTS_DIR, "clustermap_tfs_HOT_enh_proms_big.pdf")
+    # save_file = join(PLOTS_DIR, "clustermap_tfs_HOT_enh_proms_big.pdf")
     plt.savefig(save_file, bbox_inches='tight')
+    plt.close("all")
 
 
-def clusterplot_by_percentage_essentials():
+def clusterplot_by_percentage_essentials(save_file):
 
-    data_file = join(LOCI_DIR, "enrichment_files/tf_stats_summary_table.txt")
+    data_file = DATA_PATH/"src_files/tf_stats_summary_table.txt"
     df = pandas.read_table(data_file)
     df = df[df["cell_line"] == "HepG2"].reset_index(drop=True)
 
@@ -97,14 +79,15 @@ def clusterplot_by_percentage_essentials():
     g.ax_heatmap.axes.set_yticklabels(tf_labels, size=8.5)
 
     reor_ind = g.dendrogram_row.reordered_ind
-    for i in reor_ind:
-        print(i, tfs[i], df.loc[i].values)
+    # for i in reor_ind:
+    #     print(i, tfs[i], df.loc[i].values)
 
     g.ax_heatmap.axes.set_xticklabels([])
 
-    save_file = join(PLOTS_DIR, "clustermap_tfs_HOT_enh_proms_smaller.pdf")
-    print(save_file)
+    # save_file = join(PLOTS_DIR, "clustermap_tfs_HOT_enh_proms_smaller.pdf")
+    # print(save_file)
     plt.savefig(save_file)
+    plt.close("all")
 
 
 def tf_cluster_stats():

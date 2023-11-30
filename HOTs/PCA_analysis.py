@@ -1,43 +1,24 @@
+
 import warnings
-from collections import Counter, defaultdict
+warnings.filterwarnings('ignore')
 
 import pandas
 import seaborn
-
-warnings.filterwarnings('ignore')
-
 import sys
+sys.path.append("../")
+
 import os
 from os.path import join
-
 import numpy as np
-import configparser
-
-###############################################################
-
-config_file = os.path.join(os.path.expanduser('~'),'paths.cfg')
-cfg = configparser.ConfigParser()
-cfg.read(config_file)
-
-code_path = cfg.get('enhancers', 'code_path')
-sys.path.append(code_path)
-###############################################################
-
 from pybedtools import BedTool
-
 import matplotlib.pyplot as plt
+from pathlib import Path
 
-PROJECT_DIR = "ROOT_DIR/"
-BINS_DIR = "ROOT_DIR/definitions/peak_8bp_v2/log_bins/"
-PLOTS_DIR = "ROOT_DIR/plots/HOTs/PCA/"
+DATA_PATH = Path("../data/data/")
+PLOTS_DIR = DATA_PATH/"plots/"
+LOCI_DIR = DATA_PATH/"HOTs/"
 
-get_loci_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed" % (x, i)) for i in range(14)]
-get_prom_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.prom" % (x, i)) for i in range(14)]
-get_enh_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.noprom" % (x, i)) for i in range(14)]
-
-LOCI_DIR = "ROOT_DIR/definitions/peak_8bp_v2/HOTs"
-
-from overbinders.data_prep.basic import load_metadata
+from data_prep.basic import load_metadata
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
@@ -49,12 +30,20 @@ columns = ["x", "y", "PE", "tfs", "ctcf", "rad21", "p300", "polr2"]
 def get_loci_matrices():
 
     cl = "HepG2"
-    loci_file = join(LOCI_DIR, "%s_HOTs.bed" % cl)
-    pe_file = join(LOCI_DIR, "%s_HOTs.PE.bed" % cl)
-    locus_id2PE = {"%s-%d-%d"%(r.chrom, r.start, r.stop): r.fields[3].strip() for r in BedTool(pe_file)}
+    loci_file = join(LOCI_DIR, f"{cl}_HOTs.bed.gz")
+    locus_id2PE = dict()
+
+    for _loci_type, _file in zip(["P", "E"],
+                                 [join(LOCI_DIR, f"{cl}_HOTs.proms.bed.gz"),
+                                  join(LOCI_DIR, f"{cl}_HOTs.noproms.bed.gz")]):
+
+        locus_id2PE.update({"%s-%d-%d"%(r.chrom, r.start, r.stop): _loci_type for r in BedTool(_file)})
+
     loci = BedTool(loci_file)
 
-    a = load_metadata()
+    metadata_file = DATA_PATH/"src_files/metadata_HepG2_K569_H1.txt"
+    a = load_metadata(metadata_file)
+
     tf_ids = list(a[cl].values())
     tf_id2ind = {tf_id: i for i, tf_id in enumerate(tf_ids)}
 
@@ -117,7 +106,9 @@ def run_PCA(M):
 
 def load_PCA():
 
+    print("Extracting matrices.")
     M, info_mat = get_loci_matrices()
+    print("Running PCA.")
     pca_matrix, explained_variances = run_PCA(M)
 
     return pca_matrix, info_mat, explained_variances
@@ -157,7 +148,10 @@ def run_LogReg(X, Y):
     return auc, c, m
 
 
-def plot_pca_PE(data=None, x_ind=0, y_ind=1):
+def plot_pca_PE(data=None, x_ind=0, y_ind=1, save_file=None):
+
+    if not save_file:
+        return
 
     if not data:
         pca_matrix, info_mat, _ = load_PCA()
@@ -196,11 +190,9 @@ def plot_pca_PE(data=None, x_ind=0, y_ind=1):
     y_vals = c + m * x_vals
     g.plot(x_vals, y_vals, "--", color="red")
 
-    save_file = join(PLOTS_DIR, "PCA_%dvs%d_PE_full.pdf" % (x_ind + 1, y_ind + 1))
     print(save_file)
     plt.savefig(save_file, bbox_inches='tight')
-    # plt.show()
-    plt.close()
+    plt.close("all")
 
 
 def plot_pca_1vs2_tfs(data=None):
@@ -242,7 +234,10 @@ def plot_pca_1vs2_tfs(data=None):
     plt.close("all")
 
 
-def plot_pca_param(data=None, tf="polr2", x_ind=0, y_ind=1):
+def plot_pca_param(data=None, tf="polr2", x_ind=0, y_ind=1, save_file=None):
+
+    if not save_file:
+        return
 
     if tf == "polr2":
         tf_ind = 5
@@ -310,17 +305,13 @@ def plot_pca_param(data=None, tf="polr2", x_ind=0, y_ind=1):
     if tf == "ctcf":
         if x_ind == 3 and y_ind == 0:
             x_vals = [-1.8, 2.3]
-
-
+            
     y_vals = c + m * x_vals
     g.plot(x_vals, y_vals, "--", color="black")
 
-    save_file = join(PLOTS_DIR, "PCA_%s_%dvs%d.pdf" % (tf, x_ind + 1, y_ind + 1))
-    # save_file = join(PLOTS_DIR, "PCA_%s_%dvs%d.png" % (tf, x_ind + 1, y_ind + 1))
     print(save_file)
     plt.savefig(save_file, bbox_inches='tight')
-    # plt.show()
-    plt.close()
+    plt.close("all")
 
 
 def plot_pca_ctcf(pca_matrix, info_mat):

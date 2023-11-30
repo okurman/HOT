@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import gzip
 import warnings
 from collections import Counter, defaultdict
@@ -12,37 +13,25 @@ from scipy.stats import mannwhitneyu, kruskal, wilcoxon
 warnings.filterwarnings('ignore')
 
 import sys
-import os
+sys.path.append("../")
 from os.path import join
 
 import numpy as np
-import configparser
-
-###############################################################
-
-config_file = os.path.join(os.path.expanduser('~'),'paths.cfg')
-cfg = configparser.ConfigParser()
-cfg.read(config_file)
-
-code_path = cfg.get('enhancers', 'code_path')
-sys.path.append(code_path)
-###############################################################
-
 from pybedtools import BedTool
 import matplotlib.pyplot as plt
+from pathlib import Path
 
-PROJECT_DIR = "ROOT_DIR/"
-BINS_DIR = "ROOT_DIR/definitions/peak_8bp_v2/log_bins/"
-PLOTS_DIR = "ROOT_DIR/plots/HOTs/"
+DATA_PATH = Path("../data/data")
+PLOTS_DIR = DATA_PATH/"plots"
+LOCI_DIR = DATA_PATH/"HOTs"
+BINS_DIR = DATA_PATH/"log_bins"
 
-get_loci_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed" % (x, i)) for i in range(14)]
-get_prom_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.prom" % (x, i)) for i in range(14)]
-get_enh_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.noprom" % (x, i)) for i in range(14)]
+get_loci_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.gz" % (x, i)) for i in range(14)]
+get_prom_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.prom.gz" % (x, i)) for i in range(14)]
+get_enh_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.noprom.gz" % (x, i)) for i in range(14)]
 
-LOCI_DIR = "ROOT_DIR/definitions/peak_8bp_v2/HOTs"
-PROMOTERS_FILE = "/net/intdev/devdcode/common/genomes/hg19/annotations/genes/promoters.merged.bed.gz"
-
-from overbinders.data_prep.basic import load_metadata
+from data_prep.basic import load_metadata
+from data_prep import phastCons
 
 
 def extract_conservation_HOTs(score="phastCons", species="primates"):
@@ -239,9 +228,9 @@ def plot_mixed_plots(df_genes, df_cl):
 	plt.close()
 
 
-def plot_3panels_plots(df_genes, df_cl, species="primates"):
-
-	# df_genes, df_cl = load_score_data_genes(species=species), load_score_data_cell_types(species=species)
+def plot_3panels_plots(species="primates"):
+	
+	df_genes, df_cl = load_score_data_genes(species=species), load_score_data_cell_types(species=species)
 	# return df_genes, df_cl
 
 	plt.figure(figsize=(3, 3))

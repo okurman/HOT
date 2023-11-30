@@ -1,52 +1,30 @@
 import gzip
-import warnings
-from collections import defaultdict, Counter
-from random import shuffle
-
-import h5py
-warnings.filterwarnings('ignore')
-
 import sys
 import os
 from os.path import join
-
+import warnings
+warnings.filterwarnings('ignore')
 import numpy as np
-import configparser
-
-###############################################################
-config_file = os.path.join(os.path.expanduser('~'), 'paths.cfg')
-cfg = configparser.ConfigParser()
-cfg.read(config_file)
-
-code_path = cfg.get('enhancers', 'code_path')
-sys.path.append(code_path)
-###############################################################
-
 from pybedtools import BedTool
 import pandas
 import matplotlib.pyplot as plt
-from lib import phastCons, phyloP
 import seaborn as sns
-from upsetplot import from_memberships
-from upsetplot import plot as upset_plot
+from pathlib import Path
 
-from overbinders.data_prep.basic import load_metadata
+DATA_PATH = Path("../data/data")
+PLOTS_DIR = DATA_PATH/"plots/"
 
-PROJECT_DIR = "ROOT_DIR/"
-LOCI_DIR = "ROOT_DIR/definitions/peak_8bp_v2/HOTs"
-PLOTS_DIR = "ROOT_DIR/plots/HOTs/"
-TSS_FILE = "/panfs/pan1/devdcode/common/genomes/hg19/annotations/genes/TSS.bed.gz"
-PROMOTERS_FILE = "/panfs/pan1/devdcode/common/genomes/hg19/annotations/genes/promoters.merged.bed.gz"
-HK_GENES_FILE = "/panfs/pan1/devdcode/sanjar/housekeeping_genes/Housekeeping_GenesHuman.csv"
-
-SE_DIR = "/panfs/pan1/devdcode/sanjar/superenhancers/"
+TSS_FILE = DATA_PATH / "src_files/hg19_files/TSS.bed.gz"
+PROMOTERS_FILE = DATA_PATH / "src_files/hg19_files/promoters.merged.bed.gz"
+HK_GENES_FILE = DATA_PATH / "src_files/Housekeeping_GenesHuman.csv"
+TAU_FILE = DATA_PATH / "src_files/Tau_gene_V8.csv.gz"
 
 
 def extract_nearest_genes(regions, window=False, distance=25000):
 
     """ONLY FOR ENHANCERS"""
 
-    nearest_tss = regions.closest(PROMOTERS_FILE).groupby(c=7, o="collapse")
+    nearest_tss = regions.closest(str(PROMOTERS_FILE)).groupby(c=7, o="collapse")
 
     if window:
         _window = regions.window(TSS_FILE, w=distance).groupby(c=7, o="collapse")
@@ -57,14 +35,14 @@ def extract_nearest_genes(regions, window=False, distance=25000):
 
 def extract_HK_fractions():
 
-    hot_proms = BedTool(join(LOCI_DIR, "HepG2_HOTs.proms.bed")).merge(d=-1)
-    hot_enhs = BedTool(join(LOCI_DIR, "HepG2_HOTs.enhs.bed")).merge(d=-1)
+    hot_proms = BedTool(join(DATA_PATH, "HOTs/HepG2_HOTs.proms.bed.gz")).merge(d=-1)
+    hot_enhs = BedTool(join(DATA_PATH, "HOTs/HepG2_HOTs.noproms.bed.gz")).merge(d=-1)
     hots = hot_proms.cat(hot_enhs).merge(d=-1)
 
-    f = "ROOT_DIR/definitions/regular_enhancers/HepG2_enhancers_DHS_H3K27ac.bed"
+    f = join(DATA_PATH, "src_files/HepG2_enhancers_DHS_H3K27ac.bed.gz")
     re = BedTool(f).intersect(hots, v=True)
 
-    f = "/panfs/pan1/devdcode/sanjar/superenhancers/HepG2.bed"
+    f = join(DATA_PATH, "src_files/HepG2_superenhancers.bed.gz")
     se = BedTool(f).sort().merge()
 
     hk_genes = set([l.split(";")[0] for l in open(HK_GENES_FILE).readlines()[1:]])
@@ -74,7 +52,7 @@ def extract_HK_fractions():
     names = ["HOT promoters", "HOT enhancers", "Regular promoters",  "Regular enhancers", "Super-enhancers"]
     regions_list = [hot_proms, hot_enhs, rp, re, se]
 
-    nearest_genes_list = [hot_proms.intersect(PROMOTERS_FILE, wo=True).groupby(c=7, o="distinct"),
+    nearest_genes_list = [hot_proms.intersect(str(PROMOTERS_FILE), wo=True).groupby(c=7, o="distinct"),
                           extract_nearest_genes(hot_enhs),
                           rp,
                           extract_nearest_genes(re),
@@ -104,43 +82,9 @@ def extract_HK_fractions():
     return data
 
 
-def plot_fractions(data):
+def plot_fractions_merged(save_file):
 
-    # data = extract_HK_fractions()
-
-    data = np.asarray(data)
-    names = data[:, 0]
-    values = 100*np.asarray(data[:, 1:], dtype=float)
-
-    fig, axs = plt.subplots(2, 1, figsize=(3, 5))
-
-    x_range = np.arange(len(names))
-    bars = axs[0].bar(x_range, values[:, 0])
-    axs[0].bar_label(bars, label=values[:, 0], fmt="%d%%", size=9)
-    axs[0].set_ylabel("% of regulated \n HK genes")
-    axs[0].set_ylim([0, 60])
-    axs[0].set_xticklabels([])
-    axs[0].grid(axis="y")
-
-    bars = axs[1].bar(x_range, values[:, 1], color="green")
-    axs[1].bar_label(bars, label=values[:, 1], fmt="%d%%", size=9)
-    axs[1].set_ylabel("% of loci\n regulating HK genes")
-    axs[1].set_ylim([0, 20])
-    axs[1].grid(axis="y")
-
-    axs[1].set_xticks(x_range)
-    axs[1].set_xticklabels(names, rotation=45, horizontalalignment="right")
-
-    plt.tight_layout()
-
-    save_file = join(PLOTS_DIR, "barplot_houskeeping_genes.pdf")
-    print(save_file)
-    plt.savefig(save_file)
-
-
-def plot_fractions_merged(data):
-
-    # data = extract_HK_fractions()
+    data = extract_HK_fractions()
 
     data = np.asarray(data)
     names = data[:, 0]
@@ -172,38 +116,52 @@ def plot_fractions_merged(data):
     plt.tight_layout()
     # plt.show()
 
-    save_file = join(PLOTS_DIR, "barplot_houskeeping_genes_merged.pdf")
-    print(save_file)
+    # save_file = join(PLOTS_DIR, "barplot_houskeeping_genes_merged.pdf")
+    # print(save_file)
     plt.savefig(save_file, bbox_inches='tight')
     plt.close()
 
 
+def load_enst2ensg():
+
+    enst2ensg = {}
+
+    f = DATA_PATH/"src_files/hg19_files/ensGene.txt.gz"
+    for l in gzip.open(f, "rt"):
+        parts = l.split("\t")
+        enst2ensg[parts[1]] = parts[12]
+
+    return enst2ensg
+
+
 def tau_data():
 
-    tau_file = "ROOT_DIR/gene_expressions/tau/Tau_transcript_V8.csv"
+    ensg2tau = {}
 
-    enst2tau = {}
+    for l in gzip.open(TAU_FILE, "rt"):
 
-    for l in open(tau_file):
-        parts = l.split(",")
-        try:
-            enst2tau[parts[0]] = float(parts[1])
-        except:
+        if l.startswith("gene_id"):
             continue
 
-    re_file = "ROOT_DIR/definitions/regular_enhancers/HepG2_enhancers_DHS_H3K27ac.bed"
-    se_file = "/panfs/pan1/devdcode/sanjar/superenhancers/HepG2.bed"
+        parts = l.split(",")
+        expr = parts[1]
+        if expr == "NA":
+            continue
+        ensg2tau[parts[0]] = float(expr)
 
-    hot_proms = BedTool(join(LOCI_DIR, "HepG2_HOTs.proms.bed")).merge(d=-1)
-    hot_enhs = BedTool(join(LOCI_DIR, "HepG2_HOTs.enhs.bed")).merge(d=-1)
+    hot_proms = BedTool(join(DATA_PATH, "HOTs/HepG2_HOTs.proms.bed.gz")).merge(d=-1)
+    hot_proms = hot_proms.intersect(str(PROMOTERS_FILE), wa=True, v=True)
 
-    re = BedTool(re_file).intersect(hot_enhs, v=True, wa=True)
+    hot_enhs = BedTool(join(DATA_PATH, "HOTs/HepG2_HOTs.noproms.bed.gz")).merge(d=-1)
+    hots = hot_proms.cat(hot_enhs, postmerge=False).merge(d=-1)
+
+    re = BedTool(join(DATA_PATH, "src_files/HepG2_enhancers_DHS_H3K27ac.bed.gz")).intersect(hots, v=True, wa=True)
+    se = BedTool(join(DATA_PATH, "src_files/HepG2_superenhancers.bed.gz")).sort().merge()
     rp = BedTool(PROMOTERS_FILE).intersect(hot_proms, v=True, wa=True)
-    se = BedTool(se_file).sort().merge()
 
     names = ["HOT promoters", "HOT enhancers", "Regular promoters",  "Regular enhancers", "Super-enhancers"]
 
-    nearest_genes_list = [hot_proms.intersect(PROMOTERS_FILE, wo=True).groupby(c=7, o="distinct"),
+    nearest_genes_list = [hot_proms.intersect(str(PROMOTERS_FILE), wo=True).groupby(c=7, o="distinct"),
                           extract_nearest_genes(hot_enhs),
                           rp,
                           extract_nearest_genes(re),
@@ -211,21 +169,28 @@ def tau_data():
 
     data = []
 
+    enst2ensg = load_enst2ensg()
+
     for name, nearest_genes in zip(names, nearest_genes_list):
         print(name)
         nearest_tss_pool = set([_.split(".")[0] for r in nearest_genes for _ in r.fields[3].split(",")])
 
         for enst in nearest_tss_pool:
-            if enst in enst2tau:
-                data.append([name, enst2tau[enst]])
+
+            if enst not in enst2ensg:
+                continue
+
+            ensg = enst2ensg[enst]
+            if ensg in ensg2tau:
+                data.append([name, ensg2tau[ensg]])
 
     df = pandas.DataFrame(data=data, columns=["category", "tau"])
     return df
 
 
-def plot_tau_single_cl(df):
+def plot_tau_single_cl(save_file):
 
-    # df = tau_data_single_cl()
+    df = tau_data()
 
     _order = ['HOT promoters', 'Regular promoters', 'HOT enhancers',  'Regular enhancers', 'Super-enhancers']
 
@@ -242,9 +207,8 @@ def plot_tau_single_cl(df):
     ax.set_ylim([0, 1.4])
     ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     plt.tight_layout()
-    save_file = join(PLOTS_DIR, "HepG2_tau_plot.pdf")
-    print(save_file)
-    plt.savefig(save_file, bbox_inches='tight')
+
+    plt.savefig(save_file)
 
 
 

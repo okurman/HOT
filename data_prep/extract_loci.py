@@ -1,102 +1,94 @@
-import glob
-import shutil
-import subprocess
-import os
-import tempfile
-from os.path import join
-
-import numpy as np
-from pybedtools import BedTool
 
 import warnings
 warnings.filterwarnings('ignore')
 
-DATA_PATH = "data/"
-
-# TSS-related annotation files extracted from knownGene table from UCSC Genome Browser database.
-# refer to the methods for details.
-EXONS_FILE = join(DATA_PATH, "hg19_files/exon_regions.bed")
-PROMOTERS_FILE = join(DATA_PATH, "hg19_files/knownCanonical.alternative_TSS.bed")
-INTRONS_FILE = join(DATA_PATH, "hg19_files/knownGene_introns.bed")
-CODING_PROMOTERS_FILE = join(DATA_PATH, "hg19_files/knownCanonical.alternative_TSS.bed.coding")
-NONCODING_PROMOTERS_FILE = join(DATA_PATH, "hg19_files/knownCanonical.alternative_TSS.bed.noncoding")
-
-LOG_BINS_DIR = join(DATA_PATH, "log_bins/")
-PEAKS_DIR = join(DATA_PATH, "chipseq_files/peaks/")
-LOCI_DIR = join(DATA_PATH, "chipseq_files/loci/")
-
+import gzip
+import tempfile
+from pathlib import Path
+import numpy as np
+from pybedtools import BedTool
 import subprocess as sp
 from basic import load_metadata
 
 
-"""
-Order of execution:
+DATA_PATH = Path("../data/data")
+# DATA_PATH = Path("/net/intdev/devdcode/sanjar/Projects/overbinders/data/zenodo/")
 
-- peakwise_annotation.annotate_peaks()
-- concat_all_rep_loci()
-- extract_bound_loci()
-- add_stats_columns()
-- extract_to_bins():
+# TSS-related annotation files extracted from knownGene table from UCSC Genome Browser database.
+# refer to the methods for details.
+EXONS_FILE = DATA_PATH/"src_files/hg19_files/knownGene.exons.merged.bed.gz"
+PROMOTERS_FILE = DATA_PATH/"src_files/hg19_files/promoters.merged.bed.gz"
+INTRONS_FILE = DATA_PATH/"src_files/hg19_files/knownGene.introns.merged.bed.gz"
+BLACKLIST_FILE = DATA_PATH/"src_files/hg19_files/hg19-blacklist.v2.bed.gz"
+MATADATA_FILE = DATA_PATH/"src_files/metadata_HepG2_K569_H1.txt"
 
-"""
+PEAKS_DIR = DATA_PATH/"src_files/peaks/"
+
+HOTS_DIR = DATA_PATH/"HOTs"
+HOTS_DIR.mkdir(exist_ok=True)
+LOG_BINS_DIR = DATA_PATH/"log_bins"
+LOG_BINS_DIR.mkdir(exist_ok=True)
+LOCI_DIR = DATA_PATH/"loci"
+LOCI_DIR.mkdir(exist_ok=True)
 
 
 def run_locus_extraction(cell_line="HepG2"):
 
-    print("Concat")
-    concat_all_rep_loci(cell_line)
-    print("extract_bound_loci")
-    extract_bound_loci(cell_line)
-    print("add_stats_columns")
-    add_stats_columns(cell_line)
+    # print("Concatenating all ChIP-seq peaks (8bp)")
+    # concat_all_rep_loci(cell_line)
+    # print("extract_bound_loci")
+    # extract_bound_loci(cell_line)
+    # print("add_stats_columns")
+    # add_stats_columns(cell_line)
     print("extract_to_bins")
-    extract_to_bins(cell_line)
+    extract_to_log_bins(cell_line)
     print("overlap_promoters")
     overlap_promoters(cell_line)
+    # print("Extract HOT loci")
+    # extract_HOT_loci(cell_line)
 
 
-def concat_all_rep_loci(cell_line="HepG2"):
+def concat_all_rep_loci(cell_line="H1"):
 
-    cell_line2tf2file_id = load_metadata()
+    cell_line2tf2file_id = load_metadata(MATADATA_FILE)
     all_files = cell_line2tf2file_id[cell_line].values()
 
     tmp_file = tempfile.NamedTemporaryFile()
 
     for i, d in enumerate(all_files):
-        print(i, len(all_files))
-        rep_file = join(PEAKS_DIR, "%s_hg19_peak_8bp.bed" % d)
-        cmd = "cat %s >> %s" % (rep_file, tmp_file.name)
+        rep_file = PEAKS_DIR/("%s_hg19_peak_8bp.bed.gz" % d)
+        cmd = "zcat %s >> %s" % (rep_file, tmp_file.name)
         sp.call(cmd, shell=True)
 
-    save_file = join(LOCI_DIR, "%s_all_tfbs.bed" % cell_line)
+    save_file = LOCI_DIR/("%s_all_tfbs.bed.gz" % cell_line)
+
     print("Saving to:", save_file)
     BedTool(tmp_file.name).sort().groupby(g=[1, 2, 3], c=[4, 5], o="collapse").saveas(save_file)
 
 
-def extract_bound_loci(cell_line="HepG2"):
+def extract_bound_loci(cell_line="H1"):
 
-    all_rep_loci_file = join(LOCI_DIR, "%s_all_tfbs.bed" % cell_line)
+    all_rep_loci_file = LOCI_DIR/("%s_all_tfbs.bed.gz" % cell_line)
 
-    windows_file = os.path.join(DATA_PATH, "chipseq_files/homer/windows_400_hg19.bed")
-    windows_grp_file = os.path.join(LOCI_DIR, "%s_windows_400_groupby.bed" % cell_line)
+    windows_file = DATA_PATH/"src_files/windows_400_hg19.bed.gz"
+    windows_grp_file = LOCI_DIR/("%s_windows_400_groupby.bed.gz" % cell_line)
 
-    print(windows_grp_file)
+    print(f"Saving to: {windows_grp_file}")
 
     BedTool(windows_file).\
-        intersect(all_rep_loci_file, wo=True).\
+        intersect(str(all_rep_loci_file), wo=True).\
         groupby(g=[1, 2, 3], c=[5, 6, 7, 8], o="collapse").\
         saveas(windows_grp_file)
 
 
-def add_stats_columns(cell_line="HepG2"):
+def add_stats_columns(cell_line="H1"):
 
-    windows_grp_file = join(LOCI_DIR, "%s_windows_400_groupby.bed" % cell_line)
-    save_file = join(LOCI_DIR, "%s_400_loci.bed" % cell_line)
+    windows_grp_file = LOCI_DIR/("%s_windows_400_groupby.bed.gz" % cell_line)
+    save_file = LOCI_DIR/("%s_400_loci.bed.gz" % cell_line)
 
-    print(windows_grp_file)
-    print(save_file)
+    print(f"Saving to: {save_file}")
 
-    with open(save_file, "w") as of:
+    with gzip.open(save_file, "wt") as of:
 
         header_line = "#chr\tstart\tstop\tcov\tuq_tfbs\tuq_tfs\ttf_starts\ttf_stops\tencode_ids\tsignal_values\n"
         of.write(header_line)
@@ -133,19 +125,22 @@ def add_stats_columns(cell_line="HepG2"):
             of.write(out_line)
 
 
-def extract_to_log_bins(cell_line="HepG2"):
+def extract_to_log_bins(cell_line="H1"):
 
-    locus_file = os.path.join(LOCI_DIR, "%s_400_loci.bed" % cell_line)
-    lines = open(locus_file).readlines()
+    locus_file = LOCI_DIR/("%s_400_loci.bed.gz" % cell_line)
+    lines = gzip.open(locus_file, "rt").readlines()
+    tfs_column = [int(_.split("\t")[5]) for _ in lines[1:]]
+
+    # adding the edges to the last bins
     if cell_line == "H1":
-        max_tfs = int(lines[-1].split("\t")[5]) + 1
+        max_tfs = max(tfs_column) + 1
     else:
-        max_tfs = int(lines[-1].split("\t")[5]) + 10
+        max_tfs = max(tfs_column) + 10
 
     bin_edges = [1, 2, 3, 4] + list(np.logspace(np.log10(5), np.log10(max_tfs), 11, dtype=int))
     bin_edges = np.asarray(bin_edges)
 
-    fnames = ["%s_400_loci.%d.bed" % (cell_line, i) for i in range(bin_edges.shape[0])]
+    fnames = ["%s_400_loci.%d.bed.gz" % (cell_line, i) for i in range(bin_edges.shape[0])]
 
     lines_list = [[] for _ in range(np.size(bin_edges, 0))]
 
@@ -160,57 +155,67 @@ def extract_to_log_bins(cell_line="HepG2"):
         if not _lines:
             continue
         print(_fname)
-        with open(os.path.join(LOG_BINS_DIR, _fname), "w") as of:
+        with gzip.open(LOG_BINS_DIR/_fname, "wt") as of:
             for line in _lines:
                 of.write(line)
 
 
-def overlap_promoters(cell_line, bins_dir=LOG_BINS_DIR):
+def overlap_promoters(cell_line="H1"):
 
-    # fnames = ["%s_400_loci.%d.bed" % (cell_line, i) for i in range(14)]
-    fnames = glob.glob(join(bins_dir, "%s_400_loci.*.bed" % cell_line))
-
+    fnames = LOG_BINS_DIR.glob("%s_400_loci.*.bed.gz" % cell_line)
     tmp_file = tempfile.NamedTemporaryFile()
 
     for loci_file in fnames:
-        # loci_file = join(LOG_BINS_DIR, fname)
         loci_bed = BedTool(loci_file)
-        noprom_file = loci_file + ".noprom"
-        prom_file = loci_file + ".prom"
-        loci_bed.sort().intersect(PROMOTERS_FILE, v=True).sort().saveas(tmp_file.name)
+        noprom_file = str(loci_file).replace(".gz", ".noprom.gz")
+        prom_file = str(loci_file).replace(".gz", ".prom.gz")
+        loci_bed.sort().intersect(str(PROMOTERS_FILE), v=True).sort().saveas(tmp_file.name)
         cmd = "uniq %s > %s" % (tmp_file.name, noprom_file)
         sp.call(cmd, shell=True)
-        loci_bed.sort().intersect(PROMOTERS_FILE, wa=True).sort().saveas(tmp_file.name)
+        loci_bed.sort().intersect(str(PROMOTERS_FILE), wa=True).sort().saveas(tmp_file.name)
         cmd = "uniq %s > %s" % (tmp_file.name, prom_file)
         sp.call(cmd, shell=True)
-        print(prom_file)
-        print(noprom_file)
-        print("\n")
+        print(f"Bin promoter file:{prom_file}")
+        print(f"Bin enhancer file: {noprom_file}")
 
 
-def extract_to_HOTs(cell_line="HepG2"):
+def extract_HOT_loci(cl="H1"):
 
-    d = "/panfs/pan1/devdcode/sanjar/overbinders/definitions/peak_8bp_v2/HOTs/"
+    # the last four bins
+    hot_bins = [10, 11, 12, 13]
+    _files = [LOG_BINS_DIR/f"{cl}_400_loci.{i}.bed.gz" for i in hot_bins]
+    hot_loci = BedTool(_files[0]).\
+        cat(BedTool(_files[1]), postmerge=False).\
+        cat(BedTool(_files[2]), postmerge=False).\
+        cat(BedTool(_files[3]), postmerge=False)
 
-    locus_file = os.path.join(LOCI_DIR, "%s_400_loci.bed" % cell_line)
-    HOTs_file = join(d, "%s_HOTs.bed" % cell_line)
-    proms_file = join(d, "%s_HOTs.proms.bed" % cell_line)
-    enhs_file = join(d, "%s_HOTs.noproms.bed" % cell_line)
+    hot_loci = hot_loci.intersect(str(BLACKLIST_FILE), v=True, wa=True).sort()
 
-    # lines = open(locus_file).readlines()
-    # outf = open(save_file, "w")
-    # for l in lines:
-    #     parts = l.split()
-    #     tfs = int(parts[4])
-    #     if tfs >= 50:
-    #         outf.write(l)
+    save_file = HOTS_DIR/f"{cl}_HOTs.bed.gz"
+    hot_loci.saveas(save_file)
+    
+    hot_proms = hot_loci.intersect(str(PROMOTERS_FILE), wa=True, u=True)
+    save_file = HOTS_DIR / f"{cl}_HOTs.proms.bed.gz"
+    hot_proms.saveas(save_file)
 
-    BedTool(HOTs_file).sort().intersect(PROMOTERS_FILE, v=True).sort().saveas(enhs_file)
+    hot_enhs = hot_loci.intersect(str(PROMOTERS_FILE), wa=True, v=True)
+    save_file = HOTS_DIR / f"{cl}_HOTs.noproms.bed.gz"
+    hot_enhs.saveas(save_file)
 
-    BedTool(HOTs_file).\
-        sort().\
-        intersect(PROMOTERS_FILE, wo=True).\
-        sort().\
-        groupby(g=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], c=[15], o="collapse").\
-        saveas(proms_file)
+    hot_proms_nearest_tss = hot_proms.closest(str(PROMOTERS_FILE), d=True).sort().groupby(c=[15,16], o="distinct")
+    save_file = HOTS_DIR / f"{cl}_HOTs.proms.nearest_tss.bed.gz"
+    hot_proms_nearest_tss.saveas(save_file)
 
+    hot_enhs_nearest_tss = hot_enhs.closest(str(PROMOTERS_FILE), d=True).sort().groupby(c=[15, 16], o="distinct")
+    save_file = HOTS_DIR / f"{cl}_HOTs.noproms.nearest_tss.bed.gz"
+    hot_enhs_nearest_tss.saveas(save_file)
+
+
+if __name__ == "__main__":
+
+    for cl in ["H1", "HepG2", "K562"]:
+        print(f"Extracting loci for: {cl}")
+        run_locus_extraction(cl)
+        print("\n\n")
+
+    print("Done!")

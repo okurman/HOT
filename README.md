@@ -20,47 +20,83 @@ For running the code, create a python virtual environment using python>3.6 and i
 
 Transcription factor ChIP-seq files used in the study are listed in the metadata file `metadata_HepG2_K569_H1.txt` (downloaded from ENCODE portal after applying the filters) 
 
-To re-create the study, download of the narrow peak files listed in the metadata. Open an iPython console and navigate to the project directory and run: 
+To re-create the study, navigate to the project directory and run: 
 
 ```
-for cl in ["HepG", "K562", "H1"]:
-    data_prep.extract_loci.run_locus_extraction(cell_line=cl)
+cd data_prep
+python python extract_loci.py
 ```
 
-### Definition of HOT loci and compositional analyses
+This will populate with files the following the directories:
+
+- `data/loci/`
+- `data/log_bins/`
+- `data/HOTs/`
+
+The HOT loci in three cell lines will be extracted to `data/HOTs/` with the names `HepG2_HOTs.bed.gz`, `K562_HOTs.bed.gz` and `H1_HOTs.bed.gz`.
+
+
+
 ***
+#### Figure 1: Definition of HOT loci and compositional analyses
 
 <img src="./data/Figure1.png" width="480">
 
-A) `log_bins.plots.plot_bins_loci_stats_2()`\
-B) `HOTs.TF_enrichments.plot_enrichments_jointplot_size()`\
-C) `HOTs.plots.hots_prom_enh_barplot()`\
-D) `HOTs.plots.plot_ATAC()`\
-E) `HOTs.SE_analysis.draw_UpSet_SE_HOT_RE_HM()`
+`cd plots`\
+`python figure_1.py`
 
-### PCA analysis of HOT loci.
+
 ***
+#### Figure 2: PCA analysis of HOT loci.
 
 <img src="./data/Figure2.png" width="400">
 
-A, B, C) `HOTs.PCA_analysis.plot_pca_1vs2_tfs()`\
-D) `See supplemental materials`
+`cd plots`\
+`python figure_2.py`
 
-### Evolutionary conservation scores (phastCons, phyloP).
+
 ***
+#### Figure 3: Hi-C analysis of the HOT loci.
 
 <img src="./data/Figure3.png" width="450">
 
-A, B) `log_bins.plots.plot_phastcons_distribution()`\
+`cd plots`\
+`python figure_3.py`
 
 
-### Functional analysis (GO enrichment, housekeeping, tissue-specificity).
 ***
+#### Figure 4: ChIP-seq signal strength analysis.
 
 <img src="./data/Figure4.png" width="450">
 
-A) `HOTs.HK_genes_analysis.plot_fractions_merged()`
-A) `HOTs.HK_genes_analysis.plot_tau_single_cl()`
-C) `refer to supplemental materials. GO terms and p-values were obtained from GREAT tool`
+`cd plots`\
+`python figure_4.py`
 
+
+***
+#### Figure 5: Evolutionary conservation scores (phastCons, phyloP) and classification analysis.
+
+<img src="./data/Figure5.png" width="450">
+
+`cd data_pred`\
+`python phastCons.py`
+
+Note that this will first create a folder `phastCons` and download the phastCons files from UCSC Genome Browser Database and proceed to extract respective phastCons scores for each bin in `log_bins` directory. This will run approximately for 30 minutes with enough RAM available.
+
+`python figure_5.py`
+
+By default, the data will be downloaded and processed for vertebrates. To re-create the conservation score analyses for placental mammals and primates, re-run the scripts `data_prep/phastCons.py`, `plots/figure_5.py` with parameter values `placentalMammals` and `primates` 
+
+For Figure5-D, please refer to `Classification analysis of HOT loci`
+
+
+***
+#### Figure 6: Functional analysis (GO enrichment, housekeeping, tissue-specificity).
+
+<img src="./data/Figure6.png" width="450">
+
+`cd plots`\
+`python figure_6.py`
+
+For Figure6-C refer to the main text and supplemental methods.
 
