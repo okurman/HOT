@@ -13,7 +13,7 @@ Data Repository
 -------
 
 Processed data are available in the Zenodo repository (https://zenodo.org/records/7845121).  
-Download and extract to the `data` directory
+Download and extract to the `data/src_files` directory
 
 For running the code, create a python virtual environment using python>3.6 and install the requirements\
 `python3 -m pip install -r requirements.txt`
