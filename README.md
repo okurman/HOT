@@ -24,7 +24,7 @@ To re-create the study, navigate to the project directory and run:
 
 ```
 cd data_prep
-python python extract_loci.py
+python extract_loci.py
 ```
 
 This will populate with files the following the directories:
