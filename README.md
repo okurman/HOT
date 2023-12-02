@@ -47,8 +47,10 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 
 <img src="./src_figures/Figure1.png" width="480">
 
-`cd plots`\
-`python figure_1.py`
+```
+cd plots
+python figure_1.py
+```
 
 
 ***
@@ -56,8 +58,10 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 
 <img src="./src_figures/Figure2.png" width="400">
 
-`cd plots`\
-`python figure_2.py`
+```
+cd plots
+python figure_2.py
+```
 
 
 ***
@@ -65,8 +69,10 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 
 <img src="./src_figures/Figure3.png" width="450">
 
-`cd plots`\
-`python figure_3.py`
+```
+cd plots
+python figure_3.py
+```
 
 
 ***
@@ -74,8 +80,10 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 
 <img src="./src_figures/Figure4.png" width="450">
 
-`cd plots`\
-`python figure_4.py`
+```
+cd plots
+python figure_4.py
+```
 
 
 ***
@@ -83,12 +91,17 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 
 <img src="./src_figures/Figure5.png" width="450">
 
-`cd data_pred`\
-`python phastCons.py`
+```
+cd data_pred
+python phastCons.py
+```
 
 Note that this will first create a folder `phastCons` and download the phastCons files from UCSC Genome Browser Database and proceed to extract respective phastCons scores for each bin in `log_bins` directory. This will run approximately for 30 minutes with enough RAM available.
 
-`python figure_5.py`
+```
+cd plots
+python figure_5.py
+```
 
 By default, the data will be downloaded and processed for vertebrates. To re-create the conservation score analyses for placental mammals and primates, re-run the scripts `data_prep/phastCons.py`, `plots/figure_5.py` with parameter values `placentalMammals` and `primates` 
 
@@ -100,8 +113,10 @@ For Figure5-D, please refer to `Classification analysis of HOT loci`
 
 <img src="./src_figures/Figure6.png" width="450">
 
-`cd plots`\
-`python figure_6.py`
+```
+cd plots
+python figure_6.py`
+```
 
 For Figure6-C refer to the main text and supplemental methods.
 
@@ -110,10 +125,17 @@ For Figure6-C refer to the main text and supplemental methods.
 
 <img src="./src_figures/Figure7.png" width="450">
 
-`cd plots`\
-`python figure_7.py`
+```
+cd plots
+python figure_7.py
+```
 
 ***
 #### Figure 8: 
 
 <img src="./src_figures/Figure8.png" width="450">
+
+```
+cd plots
+python figure_8.py
+```
