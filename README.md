@@ -24,7 +24,7 @@ export HOT_CODE=$(pwd)
 
 ### Define logarithmically binned DAP-bound loci and HOT loci 
 
-`snakemake -c4 -R define_hot_loci`
+`snakemake -c -R define_hot_loci`
 
 This will populate with files the following the directories:
 - `data/loci/`
@@ -32,13 +32,16 @@ This will populate with files the following the directories:
 - `data/HOTs/`
 
 `snakemake -c4 -R extract_phastcons_scores`
-
+This will download phastCons scores and extract the conservation scores of the compared loci.
 
 The HOT loci in three cell lines will be extracted to `data/HOTs/` with the names `HepG2_HOTs.bed.gz`, `K562_HOTs.bed.gz` and `H1_HOTs.bed.gz`.
 
 ### Generate figures in batch
 
-`snakemake -c4 -R all`
+`snakemake -c8 -R all`
+This will create a directory for each of 8 figures under `data/HOTs/plots/` and generate the subplots depicted on the main text.
+For questions about the figures in the supplemental figures please create an issue on this repo or reach out to the authors.
+
 
 ### Generate figures individually
 
