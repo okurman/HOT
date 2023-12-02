@@ -1,6 +1,6 @@
 Codebase of the manuscript:
 
-###"Sequence characteristics and an accurate model of high-occupancy target loci in the human genome" 
+## Sequence characteristics and an accurate model of high-occupancy target loci in the human genome 
 Sanjarbek Hudaiberdiev, Ivan Ovcharenko 
 
 NCBI, NLM, NIH
@@ -100,3 +100,15 @@ For Figure5-D, please refer to `Classification analysis of HOT loci`
 
 For Figure6-C refer to the main text and supplemental methods.
 
+***
+#### Figure 7: 
+
+<img src="./src_figures/Figure7.png" width="450">
+
+`cd plots`\
+`python figure_7.py`
+
+***
+#### Figure 8: 
+
+<img src="./src_figures/Figure8.png" width="450">
