@@ -11,8 +11,8 @@ https://www.biorxiv.org/content/10.1101/2023.02.05.527203v1
 
 ### Getting started
 
-Processed data are available in the Zenodo repository (https://zenodo.org/records/7845121).  
-Download and extract to the `data/src_files` directory
+Processed data and source files are available in the Zenodo repository (https://zenodo.org/records/10251023).  
+Download the file `supplemental_files.tar.gz` and extract its content to the `data/src_files` directory
 
 Create a python virtual environment and set up the running environment: \
 ```
