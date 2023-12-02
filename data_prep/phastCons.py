@@ -2,7 +2,6 @@
 import os
 import sys
 from collections import defaultdict
-import gzip
 from pathlib import Path
 from os.path import join
 from pybedtools import BedTool
@@ -10,7 +9,8 @@ import numpy as np
 import gzip
 import urllib.request
 
-DATA_PATH = Path("../data/data/")
+# DATA_PATH = Path("../data/")
+DATA_PATH = Path(os.environ["HOT_DATA"])
 PHASTCONS_DIR = DATA_PATH / "phastCons"
 BINS_DIR = DATA_PATH / "log_bins"
 
@@ -50,7 +50,6 @@ def load_scores(chrom="chr8", score="phastCons", species="vertebrate", all_chrom
             file_fmt = os.path.join(PHASTCONS_DIR, "placentalMammals", "%s.phastCons46way.placental.wigFix.gz")
     elif score == "phyloP":
         pass
-        # file_fmt = os.path.join(phyloP_dir, "%s.phyloP46way.wigFix.gz")
 
     else:
         raise ValueError("score value should be either phastCons or phyloP")
@@ -113,11 +112,17 @@ def extract_phastcons_for_bins(species="vertebrate"):
 
 def extract_phastcons_for_HOT_and_buddies(species="vertebrate"):
 
-    src_files = [DATA_PATH/"src_files/HepG2_enhancers_DHS_H3K27ac.bed.gz",
-                 DATA_PATH/"src_files/hg19_files/knownGene.exons.merged.bed.gz",
-                 DATA_PATH/"HOTs/HepG2_HOTs.bed.gz",
-                 DATA_PATH/"HOTs/HepG2_HOTs.proms.bed.gz",
-                 DATA_PATH/"HOTs/HepG2_HOTs.noproms.bed.gz"]
+    src_files = [DATA_PATH / "src_files/HepG2_enhancers_DHS_H3K27ac.bed.gz",
+                 DATA_PATH / "src_files/hg19_files/knownGene.exons.merged.bed.gz",
+                 DATA_PATH / "HOTs/HepG2_HOTs.bed.gz",
+                 DATA_PATH / "HOTs/HepG2_HOTs.proms.bed.gz",
+                 DATA_PATH / "HOTs/HepG2_HOTs.noproms.bed.gz"]
+                 # DATA_PATH / "HOTs/K562_HOTs.bed.gz",
+                 # DATA_PATH / "HOTs/K562_HOTs.proms.bed.gz",
+                 # DATA_PATH / "HOTs/K562_HOTs.noproms.bed.gz",
+                 # DATA_PATH / "HOTs/H1_HOTs.bed.gz",
+                 # DATA_PATH / "HOTs/H1_HOTs.proms.bed.gz",
+                 # DATA_PATH / "HOTs/H1_HOTs.noproms.bed.gz"]
 
     save_files = [str(f).replace(".gz", f".{species}.phastcons.gz") for f in src_files]
     save_files = [gzip.open(_, "wt") for _ in save_files]
@@ -166,8 +171,6 @@ def check_files_exist(species="vertebrate"):
                 file_url = url_prefix + file.name
                 print(f"Downloading: {file.name}. Saving to: {file}")
                 urllib.request.urlretrieve(file_url, file)
-
-
 
 
 if __name__ == "__main__":

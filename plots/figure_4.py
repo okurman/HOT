@@ -1,30 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import sys
-sys.path.append("../")
-
-import tempfile
-from os.path import join
-import numpy as np
-import pandas
-from pybedtools import BedTool
-
+sys.path.append(os.environ["HOT_CODE"])
+import warnings
+warnings.filterwarnings('ignore')
 import matplotlib
 matplotlib.use("Agg")
 
+from os.path import join
+import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
-
-import warnings
-warnings.filterwarnings('ignore')
 
 import plots_data_factory
 from HOTs import TF_classes_by_signal
 
-
-DATA_PATH = Path("../data/data")
+import os
+DATA_PATH = Path(os.environ["HOT_DATA"])
 BINS_DIR = DATA_PATH / "log_bins"
 PLOTS_DIR = DATA_PATH / "plots/figure_4"
 PLOTS_DIR.mkdir(exist_ok=True)
@@ -61,7 +55,7 @@ if __name__ == "__main__":
 	print(save_file)
 	plot_chipseq_signals(save_file)
 
-	save_file = PLOTS_DIR / "Figure4_b_c.pdf"
+	save_file = PLOTS_DIR / "Figure4_bc.pdf"
 	print(save_file)
 	TF_classes_by_signal.plot_tf_signals_HOTs_4panels(save_file)
 

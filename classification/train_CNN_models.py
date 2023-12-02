@@ -3,24 +3,23 @@ import sys
 from os.path import join
 
 import h5py
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Conv1D, MaxPooling1D
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.constraints import max_norm
 from keras.regularizers import L1L2
-from keras.optimizers import Adam, Adadelta
-from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.optimizers import Adadelta
+from keras.callbacks import ModelCheckpoint, EarlyStopping, CSVLogger
 from sklearn import metrics
-from sklearn.metrics import roc_curve
 import numpy as np
+import pandas as pd
 
 MAX_NORM = 0.9
 L1 = 5e-07
 L2 = 1e-08
 EPOCH = 200
 BATCH_SIZE = 256
-
-PROJECT_DIR = ROOT_DIR
+import matplotlib.pyplot as plt
 
 
 def build_model(input_length=400, tasks=3):
@@ -77,6 +76,8 @@ def build_model(input_length=400, tasks=3):
 def run_model(data_file, model, save_dir):
 
     weights_file = join(save_dir, "weights.hdf5")
+    model_file = join(save_dir, "model.hdf5")
+    model.save(model_file)
 
     # Adadelta is recommended to be used with default values
     opt = Adadelta()
@@ -98,8 +99,11 @@ def run_model(data_file, model, save_dir):
     _callbacks.append(checkpoint)
     earlystopping = EarlyStopping(monitor="val_loss", patience=15, verbose=1)
     _callbacks.append(earlystopping)
+    history_log_file = os.path.join(save_dir, "training_history_log.tab")
+    history_logger = CSVLogger(filename=history_log_file, separator="\t", append=True)
+    _callbacks.append(history_logger)
 
-    compiled_model.fit(X_train,
+    history = compiled_model.fit(X_train,
                        Y_train,
                        batch_size=BATCH_SIZE,
                        epochs=EPOCH,
@@ -109,41 +113,99 @@ def run_model(data_file, model, save_dir):
 
     Y_pred = compiled_model.predict(X_test)
 
-    aucs = [metrics.roc_auc_score(Y_test[:, i], Y_pred[:, i]) for i in range(Y_pred.shape[1])]
+    aucs = []
+    aucs.append(metrics.roc_auc_score(Y_test, Y_pred))
+    aucs.append(metrics.average_precision_score(Y_test, Y_pred))
 
-    np.savetxt(join(save_dir, "auc.txt"), aucs)
-    
-    with h5py.File(join(save_dir, "predictions.hdf5"), "w") as of:
-        of.create_dataset(name="Y", data=Y_test)
-        of.create_dataset(name="Y_pred", data=Y_pred)
+    with open(join(save_dir, "AUCs.txt"), "w") as of:
+        of.write("auROC: %f\n" % aucs[0])
+        of.write("auPRC: %f\n" % aucs[1])
+
+    # with h5py.File(join(save_dir, "predictions.hdf5"), "w") as of:
+    #     of.create_dataset(name="Y", data=Y_test, compression="gzip")
+    #     of.create_dataset(name="Y_pred", data=Y_pred, compression="gzip")
+
+    plot_file = join(save_dir, "training.pdf")
+    generate_plot_history(history, plot_file)
 
 
+def evaluate_model(data_file, run_dir):
 
-def launch_train(cl, input_length, tasks):
+    weights_file = join(run_dir, "weights.hdf5")
+    model_file = join(run_dir, "model.hdf5")
+    model = load_model(model_file)
+    model.load_weights(weights_file)
 
-    if tasks == 3:
+    with h5py.File(data_file, "r") as inf:
+        X_test = inf["test_data"][()]
+        Y_test = inf["test_labels"][()]
 
-        data_file = join(PROJECT_DIR, "data/DL_analysis/datasets/%s_3class_%d.hdf5" % (cl, input_length))
-        dl_dir = join(PROJECT_DIR, "data/DL_analysis/dl_runs/%s_%d" % (cl, input_length))
-        if not os.path.exists(dl_dir):
-            os.mkdir(dl_dir)
-        model = build_model(input_length=input_length)
+    Y_pred = model.predict(X_test)
 
+    aucs = []
+    aucs.append(metrics.roc_auc_score(Y_test, Y_pred))
+    aucs.append(metrics.average_precision_score(Y_test, Y_pred))
+
+    with open(join(run_dir, "auc.txt"), "w") as of:
+        of.write("auROC: %f\n" % aucs[0])
+        of.write("auPRC: %f\n" % aucs[1])
+
+        print("auROC: %f\n" % aucs[0])
+        print("auPRC: %f\n" % aucs[1])
+
+    with h5py.File(join(run_dir, "predictions.hdf5"), "w") as of:
+        of.create_dataset(name="Y", data=Y_test, compression="gzip")
+        of.create_dataset(name="Y_pred", data=Y_pred, compression="gzip")
+
+    history_log_file = os.path.join(run_dir, "training_history_log.tab")
+    plot_file = join(run_dir, "training.pdf")
+    generate_plot_history(history_log_file, plot_file)
+
+
+def generate_plot_history(history, save_file, title=None):
+
+    if type(history) == str:
+        pass
+        history = pd.read_table(history)
     else:
+        history = history.history
 
-        data_file = join(PROJECT_DIR, "data/DL_analysis/datasets/%s_14class_%d.hdf5" % (cl, input_length))
-        dl_dir = join(PROJECT_DIR, "data/DL_analysis/dl_runs/%s_%d_14" % (cl, input_length))
-        if not os.path.exists(dl_dir):
-            os.mkdir(dl_dir)
-        model = build_model(input_length=input_length, tasks=14)
+    loss = history["loss"]
+    val_loss = history["val_loss"]
+    acc = history["acc"]
+    val_acc = history["val_acc"]
 
-    # print "Launching training:"
-    # print data_file
-    # print dl_dir
-    run_model(data_file, model, dl_dir)
+    x_range = np.arange(len(loss))
 
+    fig, axs = plt.subplots(1, 2)
+
+    axs[0].plot(x_range, loss, label="train")
+    axs[0].plot(x_range, val_loss, label="val")
+    axs[0].set_xlabel("Epochs")
+    axs[0].set_ylabel("Loss")
+    axs[0].set_title("Loss")
+    axs[0].legend(loc="upper right")
+
+    axs[1].plot(x_range, acc, label="train")
+    axs[1].plot(x_range, val_acc, label="val")
+    axs[1].set_xlabel("Epochs")
+    axs[1].set_ylabel("Accuracy")
+    axs[1].set_title("Accuracy")
+    axs[1].legend(loc="upper left")
+
+    if title:
+        plt.suptitle(title)
+
+    plt.tight_layout()
+    plt.savefig(save_file)
+    plt.close()
 
 
 if __name__ == "__main__":
 
-    launch_train(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
+    data_file = sys.argv[1]
+    save_dir = sys.argv[2]
+    input_length = int(sys.argv[3])
+
+    model = build_model(input_length=input_length, tasks=1)
+    run_model(data_file, model, save_dir)

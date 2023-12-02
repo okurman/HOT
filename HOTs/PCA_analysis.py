@@ -1,20 +1,19 @@
 
 import warnings
 warnings.filterwarnings('ignore')
-
+import os
+import sys
+sys.path.append(os.environ["HOT_CODE"])
 import pandas
 import seaborn
-import sys
-sys.path.append("../")
-
-import os
 from os.path import join
 import numpy as np
 from pybedtools import BedTool
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-DATA_PATH = Path("../data/data/")
+import os
+DATA_PATH = Path(os.environ["HOT_DATA"])
 PLOTS_DIR = DATA_PATH/"plots/"
 LOCI_DIR = DATA_PATH/"HOTs/"
 
@@ -106,31 +105,10 @@ def run_PCA(M):
 
 def load_PCA():
 
-    print("Extracting matrices.")
     M, info_mat = get_loci_matrices()
-    print("Running PCA.")
     pca_matrix, explained_variances = run_PCA(M)
 
     return pca_matrix, info_mat, explained_variances
-
-
-def search_PCs(pca_matrix, explained_variances, info_mat, info_ind):
-
-    hue_name = ["PE", "tfs", "ctcf", "rad21", "p300", "polr2"]
-    print(hue_name[info_ind])
-    values = []
-
-    for i in range(4):
-        for j in range(i+1, 5):
-            auc, _, _ = run_LogReg(pca_matrix[:, [i, j]], info_mat[:, info_ind])
-            auc = 1-auc if auc < 0.5 else auc
-            evs = np.asarray([explained_variances[i], explained_variances[j]])
-            max_arg = evs.argmax()
-            values.append([auc, i, j, evs[max_arg], max_arg])
-
-    values = np.asarray(values)
-    values = values[values[:, 0].argsort()[::-1]]
-    print(values)
 
 
 def run_LogReg(X, Y):
@@ -190,7 +168,6 @@ def plot_pca_PE(data=None, x_ind=0, y_ind=1, save_file=None):
     y_vals = c + m * x_vals
     g.plot(x_vals, y_vals, "--", color="red")
 
-    print(save_file)
     plt.savefig(save_file, bbox_inches='tight')
     plt.close("all")
 
@@ -218,9 +195,6 @@ def plot_pca_1vs2_tfs(data=None):
     g = seaborn.scatterplot(data=df, x="x", y="y", hue="tfs", s=8, legend="brief")
     g.legend(loc="upper center", bbox_to_anchor=(0.5, 1.12), ncol=6, handletextpad=0.001, columnspacing=0.0001, fontsize=7, frameon=False)
 
-    # frameon=False, handletextpad=0.001, columnspacing=0.001
-    # g._legend.remove()
-    # plt.legend([], [], frameon=False)
     g.set_xlabel("PC1")
     g.set_ylabel("PC2")
     plt.tight_layout()
@@ -229,7 +203,6 @@ def plot_pca_1vs2_tfs(data=None):
     g.xaxis.set_label_coords(0.46, -0.11)
 
     save_file = join(PLOTS_DIR, "PCA_1vs2_tfs_full.pdf")
-    print(save_file)
     plt.savefig(save_file)
     plt.close("all")
 
@@ -305,64 +278,12 @@ def plot_pca_param(data=None, tf="polr2", x_ind=0, y_ind=1, save_file=None):
     if tf == "ctcf":
         if x_ind == 3 and y_ind == 0:
             x_vals = [-1.8, 2.3]
-            
+
     y_vals = c + m * x_vals
     g.plot(x_vals, y_vals, "--", color="black")
 
     print(save_file)
     plt.savefig(save_file, bbox_inches='tight')
     plt.close("all")
-
-
-def plot_pca_ctcf(pca_matrix, info_mat):
-
-    # M, info_mat = get_loci_matrices()
-    # pca_matrix, explained_variances = run_PCA(M)
-    # return pca_matrix, info_mat, explained_variances
-
-    full_ix = np.arange(pca_matrix.shape[0])
-    np.random.shuffle(full_ix)
-    sub_ix = full_ix[:5000]
-
-    _data = pca_matrix[:, [0, 3]]
-    _data = _data[sub_ix, :]
-    _info_mat = info_mat[sub_ix, :]
-
-    merged_data = np.concatenate((_data, _info_mat), axis=1)
-    df = pandas.DataFrame(data=merged_data, columns=["x", "y", "PE", "tfs", "ctcf"])
-
-    plt.figure(figsize=(3, 2.8))
-
-    g = seaborn.scatterplot(data=df, x="x", y="y", hue="ctcf", palette="Set1")
-    l = g.legend(loc="upper center", bbox_to_anchor=(0.5, 1.17), ncol=2, frameon=False, handletextpad=0.001, columnspacing=0.001, fontsize=10)
-    l.get_texts()[0].set_text('non-CTCF')
-    l.get_texts()[1].set_text('CTCF')
-    g.set_xlabel("PC1")
-    g.set_ylabel("PC4", labelpad=0)
-    plt.tight_layout()
-    g.yaxis.set_label_coords(-0.08, 0.5)
-    g.xaxis.set_label_coords(0.46, -0.11)
-
-    # logistic regression classification
-    clf = LogisticRegression(random_state=0).fit(pca_matrix[:, [0, 3]], info_mat[:, 2])
-
-    pred = clf.predict_proba(pca_matrix[:, [0, 1]])
-    auc = roc_auc_score(info_mat[:, 0], pred[:, 0])
-    auc = np.round(auc, decimals=2)
-    print("Linear LogReg auROC: %.2f" % auc)
-
-    c = clf.intercept_[0]
-    w1, w2 = clf.coef_.T
-    c = -c / w2
-    m = -w1 / w2
-    x_vals = np.array(g.get_xlim())
-    y_vals = c + m * x_vals
-    g.plot(x_vals, y_vals, "--", color="black")
-
-    save_file = join(PLOTS_DIR, "PCA_ctcf.pdf")
-    print(save_file)
-    plt.savefig(save_file)
-    # plt.show()
-
 
 

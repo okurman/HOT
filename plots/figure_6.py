@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import sys
-sys.path.append("../")
+sys.path.append(os.environ["HOT_CODE"])
 import warnings
 warnings.filterwarnings('ignore')
 import matplotlib
 matplotlib.use("Agg")
 
 from pathlib import Path
-DATA_PATH = Path("../data/data")
+import os
+DATA_PATH = Path(os.environ["HOT_DATA"])
 PLOTS_DIR = DATA_PATH / "plots/figure_6"
 PLOTS_DIR.mkdir(exist_ok=True)
 

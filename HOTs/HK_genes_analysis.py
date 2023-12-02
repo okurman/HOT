@@ -1,6 +1,4 @@
 import gzip
-import sys
-import os
 from os.path import join
 import warnings
 warnings.filterwarnings('ignore')
@@ -11,9 +9,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 
-DATA_PATH = Path("../data/data")
-PLOTS_DIR = DATA_PATH/"plots/"
-
+import os
+DATA_PATH = Path(os.environ["HOT_DATA"])
 TSS_FILE = DATA_PATH / "src_files/hg19_files/TSS.bed.gz"
 PROMOTERS_FILE = DATA_PATH / "src_files/hg19_files/promoters.merged.bed.gz"
 HK_GENES_FILE = DATA_PATH / "src_files/Housekeeping_GenesHuman.csv"
@@ -61,7 +58,7 @@ def extract_HK_fractions():
     data = []
 
     for name, regions, nearest_genes in zip(names, regions_list, nearest_genes_list):
-        print(name)
+
         assert(regions.count() == nearest_genes.count())
 
         nearest_tss_pool = set([_.split(".")[0] for r in nearest_genes for _ in r.fields[3].split(",")])
@@ -114,10 +111,6 @@ def plot_fractions_merged(save_file):
     ax.set_xticklabels(x_labels, rotation=45, ha="right")
 
     plt.tight_layout()
-    # plt.show()
-
-    # save_file = join(PLOTS_DIR, "barplot_houskeeping_genes_merged.pdf")
-    # print(save_file)
     plt.savefig(save_file, bbox_inches='tight')
     plt.close()
 
@@ -149,19 +142,16 @@ def tau_data():
             continue
         ensg2tau[parts[0]] = float(expr)
 
-    hot_proms = BedTool(join(DATA_PATH, "HOTs/HepG2_HOTs.proms.bed.gz")).merge(d=-1)
-    hot_proms = hot_proms.intersect(str(PROMOTERS_FILE), wa=True, v=True)
-
-    hot_enhs = BedTool(join(DATA_PATH, "HOTs/HepG2_HOTs.noproms.bed.gz")).merge(d=-1)
-    hots = hot_proms.cat(hot_enhs, postmerge=False).merge(d=-1)
+    hots = BedTool(join(DATA_PATH, "HOTs/HepG2_HOTs.bed.gz")).merge(d=-1).sort()
+    hot_enhs = BedTool(join(DATA_PATH, "HOTs/HepG2_HOTs.noproms.bed.gz")).merge(d=-1).sort()
 
     re = BedTool(join(DATA_PATH, "src_files/HepG2_enhancers_DHS_H3K27ac.bed.gz")).intersect(hots, v=True, wa=True)
     se = BedTool(join(DATA_PATH, "src_files/HepG2_superenhancers.bed.gz")).sort().merge()
-    rp = BedTool(PROMOTERS_FILE).intersect(hot_proms, v=True, wa=True)
+    rp = BedTool(PROMOTERS_FILE).intersect(hots, v=True, wa=True)
 
     names = ["HOT promoters", "HOT enhancers", "Regular promoters",  "Regular enhancers", "Super-enhancers"]
 
-    nearest_genes_list = [hot_proms.intersect(str(PROMOTERS_FILE), wo=True).groupby(c=7, o="distinct"),
+    nearest_genes_list = [hots.intersect(str(PROMOTERS_FILE), wo=True).groupby(c=7, o="distinct"),
                           extract_nearest_genes(hot_enhs),
                           rp,
                           extract_nearest_genes(re),
@@ -172,7 +162,6 @@ def tau_data():
     enst2ensg = load_enst2ensg()
 
     for name, nearest_genes in zip(names, nearest_genes_list):
-        print(name)
         nearest_tss_pool = set([_.split(".")[0] for r in nearest_genes for _ in r.fields[3].split(",")])
 
         for enst in nearest_tss_pool:
@@ -201,7 +190,6 @@ def plot_tau_single_cl(save_file):
     g.legend_.remove()
     g.set_xlabel("")
 
-    # ax.set_xticklabels(["HOT\npromoters", "HOT\nenhancers", "regular\nenhancers", "regular\npromoters"])
     ax.set_xticklabels(["HOT prom", "reg prom", "HOT enh", "reg enh", "super-enh"], rotation=45, ha="right")
     ax.grid(axis="y", alpha=0.5)
     ax.set_ylim([0, 1.4])

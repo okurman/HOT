@@ -6,23 +6,11 @@ from scipy.stats import wilcoxon, mannwhitneyu, kruskal, spearmanr, sem
 
 warnings.filterwarnings('ignore')
 
-import sys
-sys.path.append("../")
 import os
+import sys
+sys.path.append(os.environ["HOT_CODE"])
 from os.path import join
-
 import numpy as np
-import configparser
-
-###############################################################
-config_file = os.path.join(os.path.expanduser('~'), 'paths.cfg')
-cfg = configparser.ConfigParser()
-cfg.read(config_file)
-
-code_path = cfg.get('enhancers', 'code_path')
-sys.path.append(code_path)
-###############################################################
-
 from pybedtools import BedTool
 import pandas
 import matplotlib.pyplot as plt
@@ -31,7 +19,8 @@ from data_prep.basic import load_metadata
 import seaborn as sns
 from pathlib import Path
 
-DATA_PATH = Path("../data/data/")
+import os
+DATA_PATH = Path(os.environ["HOT_DATA"])
 
 get_loci_files = lambda x: [join(DATA_PATH, "log_bins/%s_400_loci.%d.bed.gz" % (x, i)) for i in range(14)]
 HEPG2_XTICK_LABELS = ['1', '2', '3', '4', '5', '7', '12', '19', '31', '48', '77', '122', '192', '304', '480']
@@ -83,11 +72,6 @@ def extract_TF_signals_binwise_df(normalize=True):
 
     if normalize:
         M /= M.max(axis=1, keepdims=True)
-
-        # for i in range(M.shape[0]):
-        #     _arr = M[i, :]/np.max()
-        #     _arr = (_arr - np.mean(_arr))/np.var(_arr)
-        #     M[i, :] = _arr
 
     data = []
     for tf_ind, tf in enumerate(tfs):
@@ -164,8 +148,6 @@ def plot_tf_signals_HOTs_4panels(save_file, df=None, all=False):
             groupby(by=["tf"], as_index=False).\
             agg(mean=("value", np.mean), se=("value", sem)).\
             reset_index(drop=True).sort_values("mean", ascending=False).reset_index(drop=True)
-
-        # return df
 
     tf_stats = pandas.read_csv(DATA_PATH/"src_files/tf_stats_summary_table.txt", sep="\t")
 
@@ -422,6 +404,5 @@ def plot_signals(save_file):
     ax.grid(which="major", axis="y", alpha=0.2)
     plt.tight_layout()
 
-    # save_file = join(PLOTS_DIR, "HepG2_ssTF_nssTF_extra_signals.pdf")
     plt.savefig(save_file)
-    # print(save_file)
+

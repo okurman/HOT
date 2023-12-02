@@ -1,7 +1,7 @@
 import gzip
-import sys
-sys.path.append("../")
 import os
+import sys
+sys.path.append(os.environ["HOT_CODE"])
 import tempfile
 from collections import defaultdict
 from os.path import join
@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-DATA_PATH = Path("../data/data/")
+DATA_PATH = Path(os.environ["HOT_DATA"])
 BINS_DIR = DATA_PATH/"log_bins"
 PLOTS_DIR = DATA_PATH/"plots"
 
@@ -216,8 +216,13 @@ def load_bins_to_df(line_parser, file_amender=lambda x: x, zero_comp=False, coef
                 prom_file = prom_files[bin]
                 enh_file = enh_files[bin]
                 for cat, f in zip(["promoters", "enhancers"], [prom_file, enh_file]):
-                    for line in gzip.open(f, "rt"):
-                    # for line in open(f, "rt"):
+
+                    try:
+                        lines = gzip.open(f, "rt").readlines()
+                    except:
+                        lines = open(f, "rt").readlines()
+
+                    for line in lines:
                         value = line_parser(line)
                         if value is None:
                             continue

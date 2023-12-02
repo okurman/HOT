@@ -1,17 +1,18 @@
-#!//usr/local/bin/python
 
-import subprocess
 import os
-import tempfile
-from os.path import join
-from pybedtools import BedTool
 from collections import defaultdict
+from Bio import SeqIO
+import numpy as np
+import sys
+from pathlib import Path
+import os
+DATA_PATH = Path(os.environ["HOT_DATA"])
 
 
 def load_metadata(metadata_file=None):
 
     if not metadata_file:
-        metadata_file = "../data/data/src_files/metadata_HepG2_K569_H1.txt"
+        metadata_file = DATA_PATH/"src_files/metadata_HepG2_K569_H1.txt"
 
     cell_line2tfs = defaultdict(list)
     exp_id2lines = defaultdict(list)
@@ -72,3 +73,26 @@ def load_metadata(metadata_file=None):
 
     return cell_line2tf2file_id
 
+
+def get_chrom2seq(fasta_file):
+
+    if not os.path.exists(fasta_file):
+        print(f"Couldn't find the hg10 fasta file: {fasta_file}")
+        print(f"Quitting!")
+        sys.exit()
+
+    chrom2seq = {}
+    for seq in SeqIO.parse(fasta_file, "fasta"):
+        chrom2seq[seq.description.split()[0]] = str(seq.seq)
+
+    return chrom2seq
+
+
+def seq2one_hot(seq):
+    d = np.array(['A', 'C', 'G', 'T'])
+    m = np.zeros((len(seq), 4), dtype=bool)
+    seq = seq.upper()
+    for i in range(len(seq)):
+        m[i, :] = (d == seq[i])
+
+    return m

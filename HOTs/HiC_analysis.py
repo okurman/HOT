@@ -2,26 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-
 warnings.filterwarnings('ignore')
-
-import pandas
-import seaborn
-import sys
-
-sys.path.append("../")
-
 import os
+import sys
+sys.path.append(os.environ["HOT_CODE"])
 from os.path import join
 import numpy as np
 from pybedtools import BedTool
-import matplotlib.pyplot as plt
 from pathlib import Path
 import networkx
 import gzip
 
-DATA_PATH = Path("../data/data/")
-PLOTS_DIR = DATA_PATH / "plots"
+import os
+DATA_PATH = Path(os.environ["HOT_DATA"])
 LOCI_DIR = DATA_PATH / "HOTs"
 BINS_DIR = DATA_PATH / "log_bins"
 

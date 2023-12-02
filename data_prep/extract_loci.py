@@ -9,10 +9,10 @@ import numpy as np
 from pybedtools import BedTool
 import subprocess as sp
 from basic import load_metadata
+import os
 
-
-DATA_PATH = Path("../data/data")
-# DATA_PATH = Path("/net/intdev/devdcode/sanjar/Projects/overbinders/data/zenodo/")
+# DATA_PATH = Path("../data")
+DATA_PATH = Path(os.environ["HOT_DATA"])
 
 # TSS-related annotation files extracted from knownGene table from UCSC Genome Browser database.
 # refer to the methods for details.
@@ -34,18 +34,18 @@ LOCI_DIR.mkdir(exist_ok=True)
 
 def run_locus_extraction(cell_line="HepG2"):
 
-    # print("Concatenating all ChIP-seq peaks (8bp)")
-    # concat_all_rep_loci(cell_line)
-    # print("extract_bound_loci")
-    # extract_bound_loci(cell_line)
-    # print("add_stats_columns")
-    # add_stats_columns(cell_line)
+    print("Concatenating all ChIP-seq peaks (8bp)")
+    concat_all_rep_loci(cell_line)
+    print("extract_bound_loci")
+    extract_bound_loci(cell_line)
+    print("add_stats_columns")
+    add_stats_columns(cell_line)
     print("extract_to_bins")
     extract_to_log_bins(cell_line)
     print("overlap_promoters")
     overlap_promoters(cell_line)
-    # print("Extract HOT loci")
-    # extract_HOT_loci(cell_line)
+    print("Extract HOT loci")
+    extract_HOT_loci(cell_line)
 
 
 def concat_all_rep_loci(cell_line="H1"):

@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+import os
 import sys
-sys.path.append("../")
+sys.path.append(os.environ["HOT_CODE"])
 import warnings
 warnings.filterwarnings('ignore')
 import matplotlib
@@ -17,7 +18,8 @@ from HOTs import HiC_analysis
 from collections import defaultdict
 import pandas as pd
 
-DATA_PATH = Path("../data/data")
+import os
+DATA_PATH = Path(os.environ["HOT_DATA"])
 BINS_DIR = DATA_PATH / "log_bins"
 PLOTS_DIR = DATA_PATH / "plots/figure_3"
 PLOTS_DIR.mkdir(exist_ok=True)
@@ -26,18 +28,11 @@ HEPG2_XTICK_LABELS = ['1', '2', '3', '4', '5', '7', '12', '19', '31', '48', '77'
 get_loci_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.gz" % (x, i)) for i in range(14)]
 
 
-def plot_binwise_contacts_encode(M, save_file):
+def plot_binwise_contacts_encode(save_file):
 
-	# M, _ = HiC_analysis.extract_contact_lists_encode()
+	M, _ = HiC_analysis.extract_contact_lists_encode()
 
-	# return M
-
-	cl = "HepG2"
-
-	# contacts_file = join(PROJECT_DIR, "looping/encode/%s_log_binwise_contact_counts.txt" % cl)
-	# M = np.loadtxt(contacts_file)
-
-	files = get_loci_files(cl)
+	files = get_loci_files("HepG2")
 
 	locus_counts = np.asarray([BedTool(f).count() for f in files])
 
@@ -68,7 +63,6 @@ def plot_binwise_contacts_encode(M, save_file):
 	plt.ylabel("DAPs")
 	plt.tight_layout()
 
-	print(save_file)
 	plt.savefig(save_file)
 
 
@@ -161,5 +155,9 @@ def plot_loci_contact_correlations(save_file):
 if __name__ == "__main__":
 
 	save_file = PLOTS_DIR/"Figure3_a.pdf"
+	print(save_file)
 	plot_binwise_contacts_encode(save_file)
 
+	save_file = PLOTS_DIR / "Figure3_bc.pdf"
+	print(save_file)
+	plot_loci_contact_correlations(save_file)

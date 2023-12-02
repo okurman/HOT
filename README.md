@@ -1,6 +1,6 @@
 Codebase of the manuscript:
 
-## "Sequence characteristics and an accurate model of high-occupancy target loci in the human genome" 
+## "Sequence characteristics and an accurate model of high-occupancy target loci in the human genome 
 Sanjarbek Hudaiberdiev, Ivan Ovcharenko 
 
 NCBI, NLM, NIH
@@ -9,33 +9,38 @@ Bethesda, MD 20894
 https://www.biorxiv.org/content/10.1101/2023.02.05.527203v1
 *********
 
-Data Repository
--------
+### Getting started
 
 Processed data are available in the Zenodo repository (https://zenodo.org/records/7845121).  
 Download and extract to the `data/src_files` directory
 
-For running the code, create a python virtual environment using python>3.6 and install the requirements\
-`python3 -m pip install -r requirements.txt`
-
-Transcription factor ChIP-seq files used in the study are listed in the metadata file `metadata_HepG2_K569_H1.txt` (downloaded from ENCODE portal after applying the filters) 
-
-To re-create the study, navigate to the project directory and run: 
-
+Create a python virtual environment and set up the running environment: \
 ```
-cd data_prep
-python extract_loci.py
+conda env create -f environment.yml
+conda activate hot_env
+export HOT_DATA=$(readlink --canonicalize data)
+export HOT_CODE=$(pwd)
 ```
+
+### Define logarithmically binned DAP-bound loci and HOT loci 
+
+`snakemake -c4 -R define_hot_loci`
 
 This will populate with files the following the directories:
-
 - `data/loci/`
 - `data/log_bins/`
 - `data/HOTs/`
 
+`snakemake -c4 -R extract_phastcons_scores`
+
+
 The HOT loci in three cell lines will be extracted to `data/HOTs/` with the names `HepG2_HOTs.bed.gz`, `K562_HOTs.bed.gz` and `H1_HOTs.bed.gz`.
 
+### Generate figures in batch
 
+`snakemake -c4 -R all`
+
+### Generate figures individually
 
 ***
 #### Figure 1: Definition of HOT loci and compositional analyses

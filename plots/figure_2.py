@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import sys
-sys.path.append("../")
-
+sys.path.append(os.environ["HOT_CODE"])
 import matplotlib
 matplotlib.use("Agg")
 from pathlib import Path
@@ -11,8 +11,9 @@ from HOTs import PCA_analysis
 from HOTs import TF_coclusters
 import warnings
 warnings.filterwarnings('ignore')
+import os
 
-DATA_PATH = Path("../data/data")
+DATA_PATH = Path(os.environ["HOT_DATA"])
 PLOTS_DIR = DATA_PATH / "plots/figure_2"
 PLOTS_DIR.mkdir(exist_ok=True)
 

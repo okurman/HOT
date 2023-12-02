@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import sys
-sys.path.append("../")
+sys.path.append(os.environ["HOT_CODE"])
 
 import tempfile
 from os.path import join
@@ -24,7 +25,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-DATA_PATH = Path("../data/data")
+# DATA_PATH = Path("../data")
+
+DATA_PATH = Path(os.environ["HOT_DATA"])
 BINS_DIR = DATA_PATH / "log_bins"
 PLOTS_DIR = DATA_PATH / "plots/figure_1"
 PLOTS_DIR.mkdir(exist_ok=True)
@@ -38,8 +41,7 @@ HEPG2_XTICK_LABELS = ['1', '2', '3', '4', '5', '7', '12', '19', '31', '48', '77'
 PERC_XTICK_LABELS = ['1', '2', '3', '4', '5', '2%', '3%', '5%', '8%', '12%', '18%', '28%', '42%', '65%', '100%']
 
 
-def plot_bins_loci_stats_2():
-	save_file = join(PLOTS_DIR, "Figure1_a.pdf")
+def plot_bins_loci_stats_2(save_file):
 
 	tmp_file = tempfile.NamedTemporaryFile()
 	columns = ["cell_line", "bin", "category", "value"]
@@ -83,11 +85,11 @@ def plot_bins_loci_stats_2():
 	ax2.set_xlim([-1, 14])
 
 	plt.tight_layout()
-	print(save_file)
 	plt.savefig(save_file)
 
 
-def plot_enrichments_jointplot_size(cl="HepG2"):
+def plot_enrichments_jointplot_size(save_file, cl="HepG2"):
+
 	table_file = DATA_PATH / "src_files/tf_stats_summary_table.txt"
 	df = pandas.read_table(table_file)
 	df = df[df["cell_line"] == cl]
@@ -114,12 +116,11 @@ def plot_enrichments_jointplot_size(cl="HepG2"):
 	g.ax_joint.set_xlim([-5, 100])
 	g.ax_joint.set_ylim([0, 100])
 
-	save_file = PLOTS_DIR / f"Figure1_b_{cl}.pdf"
-	print(save_file)
 	plt.savefig(save_file)
 
 
-def hots_prom_enh_barplot(cl="HepG2"):
+def hots_prom_enh_barplot(save_file, cl="HepG2"):
+
 	introns_file = str(DATA_PATH / "src_files/hg19_files/knownGene.introns.merged.bed.gz")
 
 	data = []
@@ -148,9 +149,6 @@ def hots_prom_enh_barplot(cl="HepG2"):
 	ax.spines['right'].set_visible(False)
 
 	plt.tight_layout()
-
-	save_file = join(PLOTS_DIR, f"Figure1_c_{cl}.pdf")
-	print(save_file)
 	plt.savefig(save_file)
 
 
@@ -180,10 +178,9 @@ def load_ATAC_data(cl="HepG2"):
 	return df
 
 
-def plot_ATAC(cl="HepG2"):
-	print("Extracting ATAC-seq overlap information.")
+def plot_ATAC(save_file, cl="HepG2"):
+
 	df = load_ATAC_data(cl)
-	# df = df[df["ca_data"] == "ATAC-seq"]
 
 	plt.figure(figsize=(3, 3.1))
 	ax = plt.gca()
@@ -202,14 +199,11 @@ def plot_ATAC(cl="HepG2"):
 	ax.set_ylabel("ATAC-seq")
 
 	plt.tight_layout()
-
-	save_file = join(PLOTS_DIR, f"Figure1_d_{cl}.pdf")
-	print(save_file)
 	plt.savefig(save_file, bbox_inches='tight')
 	plt.close()
 
 
-def draw_UpSet_SE_HOT_RE_HM():
+def draw_UpSet_SE_HOT_RE_HM(save_file):
 
 	re_file = DATA_PATH/ "src_files/HepG2_enhancers_DHS_H3K27ac.bed.gz"
 	se_file = DATA_PATH/ "src_files/HepG2_superenhancers.bed.gz"
@@ -256,23 +250,33 @@ def draw_UpSet_SE_HOT_RE_HM():
 
 	upset_plot(data, fig=fig)
 
-	save_file = join(PLOTS_DIR, "Figure1_e.pdf")
-	print(save_file)
 	fig.savefig(save_file, bbox_inches='tight')
 	return data
 
 
 if __name__ == "__main__":
 
-	plot_bins_loci_stats_2()
+	PLOTS_DIR.mkdir(exist_ok=True)
+
+	save_file = join(PLOTS_DIR, "Figure1_a.pdf")
+	print(save_file)
+	plot_bins_loci_stats_2(save_file)
 
 	for cl in ["HepG2", "K562"]:
-		plot_enrichments_jointplot_size(cl)
+		save_file = PLOTS_DIR / f"Figure1_b.{cl}.pdf"
+		print(save_file)
+		plot_enrichments_jointplot_size(save_file, cl)
 
 	for cl in ["H1", "HepG2", "K562"]:
-		hots_prom_enh_barplot(cl)
+		save_file = join(PLOTS_DIR, f"Figure1_c.{cl}.pdf")
+		print(save_file)
+		hots_prom_enh_barplot(save_file, cl)
 
 	for cl in ["HepG2", "K562"]:
-		plot_ATAC(cl)
+		save_file = join(PLOTS_DIR, f"Figure1_d.{cl}.pdf")
+		print(save_file)
+		plot_ATAC(save_file, cl)
 
-	draw_UpSet_SE_HOT_RE_HM()
+	save_file = join(PLOTS_DIR, "Figure1_e.pdf")
+	print(save_file)
+	draw_UpSet_SE_HOT_RE_HM(save_file)
