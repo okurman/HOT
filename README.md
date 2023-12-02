@@ -1,6 +1,6 @@
 Codebase of the manuscript:
 
-## Sequence characteristics and an accurate model of high-occupancy target loci in the human genome 
+## "Sequence characteristics and an accurate model of high-occupancy target loci in the human genome" 
 Sanjarbek Hudaiberdiev, Ivan Ovcharenko 
 
 NCBI, NLM, NIH
