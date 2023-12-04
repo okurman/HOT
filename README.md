@@ -182,7 +182,7 @@ Training this model will require GPUs on the computer.
 The file structure under `$save_dir` will contain files: `AUCs.txt  model.hdf5  training_history_log.tab  weights.hdf5`
 
 Repeat the training procedure for all the values as follows:
-```
+```bash
 for cl in HepG2 K562:
 do
     for ctr in dhs re proms
