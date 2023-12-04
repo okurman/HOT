@@ -26,6 +26,14 @@ export HOT_CODE=$(pwd)
 
 `snakemake --cores 4 -s snakemake/data_prep.smk`
 
+Or individually by running the python scripts:
+```bash
+for cl in HepG2 K562 H1
+do
+  python data_prep/extract_loci.py $cl
+done
+```
+
 This will populate with files the following the directories:
 - `data/loci/`
 - `data/log_bins/`
@@ -36,11 +44,22 @@ This will download phastCons scores and extract the conservation scores of the c
 
 The HOT loci in three cell lines will be extracted to `data/HOTs/` with the names `HepG2_HOTs.bed.gz`, `K562_HOTs.bed.gz` and `H1_HOTs.bed.gz`.
 
+To run these commands directly:
+```bash
+python data_prep/phastCons_download.py
+for cl in HepG2 K562
+do
+  python data_prep/phastCons.py $cl vertebrates
+done
+```
+
+For re-creating the comparative analyses of conservation scores from different species, run the code snippet above by supplying `mammals` and `primates` values. 
+
 ### Generate figures in batch
 
 `snakemake --cores 5 -s snakemake/generate_figures.smk`
 
-This will create a directory for each of 8 figures under `data/HOTs/plots/` and generate the subplots depicted on the main text.
+This will create a directory for each of 8 figures under `data/plots/` and generate the subplots depicted on the main text.
 For questions about the figures in the supplemental figures please create an issue on this repo or reach out to the authors.
 
 
@@ -241,4 +260,4 @@ done
 
 `-feature` parameter will indicate on which feature to train the models. Value -1 will ensure to train on all of the features at once. 
 
-`-model` parameter can have self-explanatory `logreg` and `svm` valaues. In case of training the SVM models, the `-kernel` parameter can also be supplied to use different kernels with values `linear, rbf (radial basis function), poly (polynomial), signoid` 
+`-model` parameter can have self-explanatory `logreg` and `svm` valaues. In case of training the SVM models, the `-kernel` parameter can also be supplied to use different kernels with values `linear, rbf (radial basis function), poly (polynomial), sigmoid` 
