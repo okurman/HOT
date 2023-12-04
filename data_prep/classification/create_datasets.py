@@ -213,6 +213,7 @@ if __name__ == "__main__":
                 results.append(pool.apply_async(create_dataset_binary, (), _kwargs))
                 results.append(pool.apply_async(create_dataset_binary_fasta, (), _kwargs))
 
+            _kwargs = {"cl": cl, "control_type": ctr}
             results.append(pool.apply_async(create_dataset_binary_features, (), _kwargs))
 
         for r in results:
@@ -223,7 +224,7 @@ if __name__ == "__main__":
     ####################################################################################################
     #### To run individually, in a non-parallel way uncomment the following part:  #####################
     ####################################################################################################
-
+    
     # chrom2seq = get_chrom2seq(FASTA_FILE)
     # for ctr in ["proms", "re", "dhs"]:
     #     print(f"\t{ctr}")

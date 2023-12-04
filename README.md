@@ -14,6 +14,14 @@ https://www.biorxiv.org/content/10.1101/2023.02.05.527203v1
 1. [Getting started](#gts)
 2. [Define loci](#dfnlc)
 3. [Extract phastCons scores](#phst)
+4. [Generate figures in batch](#gnrtfgrsbtch)
+5. [Generate individual figures](#gnrtfgrsind)
+6. [Classification analysis](#cls)
+   1. [Generate control regions](#cls-ctr)
+   2. [Generate datasets](#cls-dts)
+   3. [Train Convolutional Neural Networks](#cls-cnn)
+   4. [Train LS-GKM models](#cls-lsgkm)
+   5. [Train sequence feature (GC, CG, CpG, GCI) models](#cls-features)
 
 ### Getting started <a name="gts"></a>
 
@@ -63,15 +71,14 @@ done
 
 For re-creating the comparative analyses of conservation scores from different species, run the code snippet above by supplying `mammals` and `primates` values. 
 
-### Generate figures in batch
+### Generate figures in batch <a name="gnrtfgrsbtch"></a>
 
 `snakemake --cores 5 -s snakemake/generate_figures.smk`
 
 This will create a directory for each of 8 figures under `data/plots/` and generate the subplots depicted on the main text.
 For questions about the figures in the supplemental figures please create an issue on this repo or reach out to the authors.
 
-
-### Generate figures individually
+### Generate figures individually <a name="gnrtfgrsind"></a>
 
 ***
 #### Figure 1: Definition of HOT loci and compositional analyses
@@ -162,7 +169,7 @@ python plots/figure_7.py
 python plots/figure_8.py
 ```
 
-### Classification analysis
+### Classification analysis <a name="cls"></a>
 
 All the pre-trained models used in the analysis are available in the archived file in Zenodo repository:
 -`models_trained.tar.gz`
@@ -172,13 +179,15 @@ The classification evaluation results (auROC and auPRC values) of each of the cl
 
 Below are the instructions for re-generating the whole classification analysis.
 
-#### Prepare the datasets
-First, generate the control regions used in the study for classification analysis with:
+#### Generate control regions <a name="cls-ctr"></a>
 
+First, generate the control regions used in the study for classification analysis with:
 `snakemake --cores 2 -s snakemake/data_prep_control_regions.smk`
 
 This will create and populate the directory: 
  - `data/classification/datasets/control_regions`
+
+#### Prepare the datasets <a name="cls-dts"></a>
 
 Then, create the datasets with:
 `snakemake --cores 2 -s snakemake/data_prep_classification.smk`
@@ -188,7 +197,7 @@ This will create and populate the directories:
 - data/classification/datasets/features_datasets
 - data/classification/datasets/one_hot_datasets
 
-#### CNN classification
+#### Train Convolutional Neural Networks <a name="cls-cnn"></a>
 
 CNNs were trained using old versions of Tensorflow/Keras so we recommend using the singularity container provided in the Zenodo repository.
 To train models, run:
@@ -227,7 +236,7 @@ do
 done
 ```
 
-#### SVMs trained on DNA sequences
+#### SVMs trained on DNA sequences <a name="cls-lsgkm"></a>
 
 This will require the presence of the LS-GKM tool in the system path. Download and install it from:
 https://github.com/Dongwon-Lee/lsgkm
@@ -251,7 +260,7 @@ The results will be saved under the path:
 
 To train the models with different kernel versions supply `-kernel` parameter with the values from the range `1 - 7`. Default version will run with `kernel=4`, i.e. "gapped-kmers"
 
-#### Classification using the sequence features
+#### Classification using the sequence features <a name="cls-features"></a>
 
 This part uses sequence features of GC, CG, CpG and CGI island coverage, instead of the direct sequences.
 
@@ -268,4 +277,4 @@ done
 
 `-feature` parameter will indicate on which feature to train the models. Value -1 will ensure to train on all of the features at once. 
 
-`-model` parameter can have self-explanatory `logreg` and `svm` valaues. In case of training the SVM models, the `-kernel` parameter can also be supplied to use different kernels with values `linear, rbf (radial basis function), poly (polynomial), sigmoid` 
+`-model` parameter can have self-explanatory `logreg` and `svm` values. In case of training the SVM models, the `-kernel` parameter can also be supplied to use different kernels with values `linear, rbf (radial basis function), poly (polynomial), sigmoid` 
