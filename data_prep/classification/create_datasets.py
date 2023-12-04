@@ -1,21 +1,18 @@
 #!/usr/bin/env python
 
+import os
+import sys
+sys.path.append(os.environ["HOT_CODE"])
 import warnings
 warnings.filterwarnings('ignore')
-import sys
-sys.path.append("../../")
 import random
-import subprocess
-import tempfile
-import os
 from os.path import join
 import numpy as np
 from pybedtools import BedTool
-from pybedtools import featurefuncs
 import h5py
 from pathlib import Path
 
-DATA_PATH = Path("../../data")
+DATA_PATH = Path(os.environ["HOT_DATA"])
 BINS_DIR = DATA_PATH/"log_bins"
 HOTS_DIR = DATA_PATH/"HOTs"
 
@@ -23,13 +20,13 @@ get_loci_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.gz" % (x, i)) for
 get_prom_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.prom.gz" % (x, i)) for i in range(14)]
 get_enh_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.noprom.gz" % (x, i)) for i in range(14)]
 
-FASTA_FILE = DATA_PATH/"src_files/hg19_files/hg19.fa"
+FASTA_FILE = DATA_PATH/"src_files/hg19_files/hg19.fa.gz"
 VAL_CHROMS = ["chr6", "chr7"]
 TEST_CHROMS = ["chr8", "chr9"]
 TRAIN_CHROMS = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15',
                 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22']
 
-from data_prep.basic import get_chrom2seq, seq2one_hot
+from data_prep.basic import get_chrom2seq, seq2one_hot, download_hg19_fasta
 
 SAVE_DIR = DATA_PATH / "classification/datasets"
 SAVE_DIR.mkdir(exist_ok=True, parents=True)
@@ -200,21 +197,39 @@ def create_dataset_binary_fasta(cl="HepG2", seq_len=400, control_type="dhs"):
 
 if __name__ == "__main__":
 
+    if not FASTA_FILE.exists():
+        download_hg19_fasta(FASTA_FILE)
+        quit()
+
     chrom2seq = get_chrom2seq(FASTA_FILE)
-    for cl in ["HepG2", "K562"]:
-        print(cl)
-        for ctr in ["proms", "re", "dhs"]:
-            print(f"\t{ctr}")
 
-            print("\t\tone_hot dataset")
-            for seq_len in [400, 1000]:
-                print(f"\t\t\t{seq_len}")
-                create_dataset_binary(cl=cl, seq_len=seq_len, control_type=ctr, chrom2seq=chrom2seq)
+    cl = sys.argv[1]
+    # ctr = sys.argv[2]
+    # seq_len = int(sys.argv[3])
+    #
+    #
+    # create_dataset_binary(cl=cl, seq_len=seq_len, control_type=ctr, chrom2seq=chrom2seq)
+    # create_dataset_binary_fasta(cl=cl, seq_len=seq_len, control_type=ctr)
+    #
+    # if seq_len == 400:
+    #     create_dataset_binary_features(cl=cl, chrom2seq=chrom2seq, control_type=ctr)
+    #
+    # quit()
 
-            print("\t\tfasta dataset")
-            for seq_len in [400, 1000]:
-                print(f"\t\t\t{seq_len}")
-                create_dataset_binary_fasta(cl=cl, seq_len=seq_len, control_type=ctr)
+    # # for cl in ["HepG2", "K562"]:
+    # #     print(cl)
+    for ctr in ["proms", "re", "dhs"]:
+        print(f"\t{ctr}")
 
-            print("\t\tsequence features dataset")
-            create_dataset_binary_features(cl=cl, chrom2seq=chrom2seq, control_type=ctr)
+        print("\t\tone_hot dataset")
+        for seq_len in [400, 1000]:
+            print(f"\t\t\t{seq_len}")
+            create_dataset_binary(cl=cl, seq_len=seq_len, control_type=ctr, chrom2seq=chrom2seq)
+
+        print("\t\tfasta dataset")
+        for seq_len in [400, 1000]:
+            print(f"\t\t\t{seq_len}")
+            create_dataset_binary_fasta(cl=cl, seq_len=seq_len, control_type=ctr)
+
+        print("\t\tsequence features dataset")
+        create_dataset_binary_features(cl=cl, chrom2seq=chrom2seq, control_type=ctr)

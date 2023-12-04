@@ -20,7 +20,7 @@ import seaborn as sns
 import os
 DATA_PATH = Path(os.environ["HOT_DATA"])
 PLOTS_DIR = DATA_PATH / "plots/figure_5"
-PLOTS_DIR.mkdir(exist_ok=True)
+PLOTS_DIR.mkdir(exist_ok=True, parents=True)
 
 
 def plot_phastcons_distribution_log_bins(save_file, species="vertebrate"):

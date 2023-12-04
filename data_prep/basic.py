@@ -1,5 +1,5 @@
-
-import os
+import gzip
+import urllib
 from collections import defaultdict
 from Bio import SeqIO
 import numpy as np
@@ -7,6 +7,14 @@ import sys
 from pathlib import Path
 import os
 DATA_PATH = Path(os.environ["HOT_DATA"])
+
+
+def download_hg19_fasta(save_file):
+
+    url = "https://hgdownload.cse.ucsc.edu/goldenpath/hg19/bigZips/hg19.fa.gz"
+    urllib.request.urlretrieve(url, save_file)
+
+    return
 
 
 def load_metadata(metadata_file=None):
@@ -82,7 +90,10 @@ def get_chrom2seq(fasta_file):
         sys.exit()
 
     chrom2seq = {}
-    for seq in SeqIO.parse(fasta_file, "fasta"):
+
+    inf = gzip.open(fasta_file, "rt") if str(fasta_file).endswith(".gz") else open(fasta_file, "rt")
+
+    for seq in SeqIO.parse(inf, "fasta"):
         chrom2seq[seq.description.split()[0]] = str(seq.seq)
 
     return chrom2seq

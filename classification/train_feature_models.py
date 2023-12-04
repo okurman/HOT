@@ -2,7 +2,7 @@
 
 import warnings
 warnings.filterwarnings("ignore")
-import os.path
+import os
 from os.path import join
 import h5py
 import numpy as np
@@ -13,7 +13,7 @@ import pickle
 import argparse
 from pathlib import Path
 
-DATA_PATH = Path("../data")
+DATA_PATH = Path(os.environ["HOT_DATA"])
 DATASETS_DIR = DATA_PATH/"classification/datasets/features_datasets"
 MODELS_DIR = DATA_PATH/"classification/models/feature_models"
 MODELS_DIR.mkdir(exist_ok=True, parents=True)

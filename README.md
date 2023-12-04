@@ -24,7 +24,7 @@ export HOT_CODE=$(pwd)
 
 ### Define logarithmically binned DAP-bound loci and HOT loci 
 
-`snakemake -c -R define_hot_loci`
+`snakemake --cores 4 -s snakemake/data_prep.smk`
 
 This will populate with files the following the directories:
 - `data/loci/`
@@ -38,7 +38,8 @@ The HOT loci in three cell lines will be extracted to `data/HOTs/` with the name
 
 ### Generate figures in batch
 
-`snakemake -c8 -R all`
+`snakemake --cores 5 -s snakemake/generate_figures.smk`
+
 This will create a directory for each of 8 figures under `data/HOTs/plots/` and generate the subplots depicted on the main text.
 For questions about the figures in the supplemental figures please create an issue on this repo or reach out to the authors.
 
@@ -141,4 +142,60 @@ python figure_7.py
 ```
 cd plots
 python figure_8.py
+```
+
+### Classification analysis
+
+First, generate the control regions used in the study for classification analysis with:
+
+`snakemake --cores 2 -s snakemake/data_prep_control_regions.smk`
+
+This will create and populate the directory: 
+ - `data/classification/datasets/control_regions`
+
+Then, create the datasets with:
+`snakemake --cores 2 -s snakemake/data_prep_classification.smk`
+
+This will create and populate the directories: 
+ - `data/classification/datasets/fasta_datasets`
+ - `data/classification/datasets/features_datasets`
+ - `data/classification/datasets/one_hot_datasets`
+
+#### CNN classification
+
+CNNs were trained using old versions of Tensorflow/Keras so we recommend using the singularity container provided in the Zenodo repository.
+To train models, run:
+
+```
+cl=HepG2
+ctr=dhs
+seq_len=400
+name=$cl"_binary_"$ctr"_"$seq_len
+data_file=/classification/datasets/one_hot_datasets/$name.hdf5
+save_dir=classification/models/CNN_models/$name
+
+singularity exec --nv data/src_files/src_files/singularity_container.sif python \ 
+classification/train_CNN_models.py $data_file $save_dir $seq_len
+````
+
+Training this model will require GPUs on the computer.
+The file structure under `$save_dir` will contain files: `AUCs.txt  model.hdf5  training_history_log.tab  weights.hdf5`
+
+Repeat the training procedure for all the values as follows:
+```
+for cl in HepG2 K562:
+do
+    for ctr in dhs re proms
+    do
+        for seq_len in 400 1000
+        do
+            name=$cl"_binary_"$ctr"_"$seq_len
+            data_file=/classification/datasets/one_hot_datasets/$name.hdf5
+            save_dir=classification/models/CNN_models/$name
+            
+            singularity exec --nv data/src_files/src_files/singularity_container.sif python \ 
+            classification/train_CNN_models.py $data_file $save_dir $seq_len
+        done
+    done
+done
 ```

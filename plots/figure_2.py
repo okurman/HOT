@@ -15,7 +15,7 @@ import os
 
 DATA_PATH = Path(os.environ["HOT_DATA"])
 PLOTS_DIR = DATA_PATH / "plots/figure_2"
-PLOTS_DIR.mkdir(exist_ok=True)
+PLOTS_DIR.mkdir(exist_ok=True, parents=True)
 
 
 def plot_PCA_figures():

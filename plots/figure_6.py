@@ -13,7 +13,7 @@ from pathlib import Path
 import os
 DATA_PATH = Path(os.environ["HOT_DATA"])
 PLOTS_DIR = DATA_PATH / "plots/figure_6"
-PLOTS_DIR.mkdir(exist_ok=True)
+PLOTS_DIR.mkdir(exist_ok=True, parents=True)
 
 from HOTs import HK_genes_analysis
 

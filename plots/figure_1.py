@@ -24,13 +24,11 @@ from upsetplot import plot as upset_plot
 import warnings
 warnings.filterwarnings('ignore')
 
-
-# DATA_PATH = Path("../data")
-
 DATA_PATH = Path(os.environ["HOT_DATA"])
 BINS_DIR = DATA_PATH / "log_bins"
+
 PLOTS_DIR = DATA_PATH / "plots/figure_1"
-PLOTS_DIR.mkdir(exist_ok=True)
+PLOTS_DIR.mkdir(exist_ok=True, parents=True)
 
 get_loci_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.gz" % (x, i)) for i in range(14)]
 get_prom_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.prom.gz" % (x, i)) for i in range(14)]
@@ -255,8 +253,6 @@ def draw_UpSet_SE_HOT_RE_HM(save_file):
 
 
 if __name__ == "__main__":
-
-	PLOTS_DIR.mkdir(exist_ok=True)
 
 	save_file = join(PLOTS_DIR, "Figure1_a.pdf")
 	print(save_file)

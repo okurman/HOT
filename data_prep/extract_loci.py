@@ -1,4 +1,4 @@
-
+import sys
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -10,8 +10,6 @@ from pybedtools import BedTool
 import subprocess as sp
 from basic import load_metadata
 import os
-
-# DATA_PATH = Path("../data")
 DATA_PATH = Path(os.environ["HOT_DATA"])
 
 # TSS-related annotation files extracted from knownGene table from UCSC Genome Browser database.
@@ -213,9 +211,12 @@ def extract_HOT_loci(cl="H1"):
 
 if __name__ == "__main__":
 
-    for cl in ["H1", "HepG2", "K562"]:
-        print(f"Extracting loci for: {cl}")
-        run_locus_extraction(cl)
-        print("\n\n")
+    cl = sys.argv[1]
 
+    # for cl in ["H1", "HepG2", "K562"]:
+    #     print(f"Extracting loci for: {cl}")
+    #     run_locus_extraction(cl)
+    #     print("\n\n")
+
+    run_locus_extraction(cl)
     print("Done!")

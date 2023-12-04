@@ -22,7 +22,7 @@ import os
 DATA_PATH = Path(os.environ["HOT_DATA"])
 BINS_DIR = DATA_PATH / "log_bins"
 PLOTS_DIR = DATA_PATH / "plots/figure_3"
-PLOTS_DIR.mkdir(exist_ok=True)
+PLOTS_DIR.mkdir(exist_ok=True, parents=True)
 
 HEPG2_XTICK_LABELS = ['1', '2', '3', '4', '5', '7', '12', '19', '31', '48', '77', '122', '192', '304', '480']
 get_loci_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.gz" % (x, i)) for i in range(14)]

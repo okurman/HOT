@@ -9,9 +9,9 @@ import numpy as np
 import gzip
 import urllib.request
 
-# DATA_PATH = Path("../data/")
 DATA_PATH = Path(os.environ["HOT_DATA"])
 PHASTCONS_DIR = DATA_PATH / "phastCons"
+PHASTCONS_DIR.mkdir(exist_ok=True)
 BINS_DIR = DATA_PATH / "log_bins"
 
 get_loci_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.gz" % (x, i)) for i in range(14)]
@@ -110,19 +110,15 @@ def extract_phastcons_for_bins(species="vertebrate"):
                             outf.write(out_line)
 
 
-def extract_phastcons_for_HOT_and_buddies(species="vertebrate"):
+def extract_phastcons_for_HOT_and_buddies(cl="HepG2", species="vertebrate"):
 
-    src_files = [DATA_PATH / "src_files/HepG2_enhancers_DHS_H3K27ac.bed.gz",
-                 DATA_PATH / "src_files/hg19_files/knownGene.exons.merged.bed.gz",
-                 DATA_PATH / "HOTs/HepG2_HOTs.bed.gz",
-                 DATA_PATH / "HOTs/HepG2_HOTs.proms.bed.gz",
-                 DATA_PATH / "HOTs/HepG2_HOTs.noproms.bed.gz"]
-                 # DATA_PATH / "HOTs/K562_HOTs.bed.gz",
-                 # DATA_PATH / "HOTs/K562_HOTs.proms.bed.gz",
-                 # DATA_PATH / "HOTs/K562_HOTs.noproms.bed.gz",
-                 # DATA_PATH / "HOTs/H1_HOTs.bed.gz",
-                 # DATA_PATH / "HOTs/H1_HOTs.proms.bed.gz",
-                 # DATA_PATH / "HOTs/H1_HOTs.noproms.bed.gz"]
+    src_files = [DATA_PATH / f"HOTs/{cl}_HOTs.bed.gz",
+                 DATA_PATH / f"HOTs/{cl}_HOTs.proms.bed.gz",
+                 DATA_PATH / f"HOTs/{cl}_HOTs.noproms.bed.gz"]
+
+    enh_file = DATA_PATH / f"src_files/{cl}_enhancers_DHS_H3K27ac.bed.gz"
+    if enh_file.exists():
+        src_files.append(enh_file)
 
     save_files = [str(f).replace(".gz", f".{species}.phastcons.gz") for f in src_files]
     save_files = [gzip.open(_, "wt") for _ in save_files]
@@ -147,47 +143,10 @@ def extract_phastcons_for_HOT_and_buddies(species="vertebrate"):
                 of.flush()
 
 
-def check_files_exist(species="vertebrate"):
-
-    chroms = ["chr%d" % _ for _ in range(1, 23)] + ["chrX", "chrY"]
-    
-    if species == "vertebrate":
-        files = [PHASTCONS_DIR / species /f"{chrom}.phastCons46way.wigFix.gz" for chrom in chroms]
-        url_prefix = "https://hgdownload.cse.ucsc.edu/goldenpath/hg19/phastCons46way/vertebrate/"
-    else:
-        files = [PHASTCONS_DIR / species / f"{chrom}.phastCons46way.{species}.wigFix.gz" for chrom in chroms]
-        url_prefix = f"https://hgdownload.cse.ucsc.edu/goldenpath/hg19/phastCons46way/{species}/"
-
-    if not all([f.exists() for f in files]):
-        print(f" {species} phastCons files (or some of them) are not present. Proceeding to download from:")
-        print(url_prefix)
-        print("\n")
-
-        species_dir = PHASTCONS_DIR/species
-        species_dir.mkdir(exist_ok=True, parents=True)
-
-        for file in files:
-            if not file.exists():
-                file_url = url_prefix + file.name
-                print(f"Downloading: {file.name}. Saving to: {file}")
-                urllib.request.urlretrieve(file_url, file)
-
-
 if __name__ == "__main__":
 
-    if len(sys.argv) > 1:
-        species = sys.argv[1]
-        if species not in ["placentalMammals", "vertebrate", "primates"]:
-            print("Species need to be one of: placentalMammals, vertebrate, primates")
-        sys.exit()
+    cl = sys.argv[1]
+    species = sys.argv[2]
 
-    else:
-        species = "vertebrate"
-
-    check_files_exist(species)
-
-    # print(f"Extracting phastCons{species} scores for binned loci.")
-    # extract_phastcons_for_bins(species)
-
-    print(f"Extracting phastCons{species} scores for hg19 exons, regular enhancers and HOT loci .")
-    extract_phastcons_for_HOT_and_buddies(species)
+    print(f"Extracting phastCons data for: {cl} {species}")
+    extract_phastcons_for_HOT_and_buddies(cl, species)

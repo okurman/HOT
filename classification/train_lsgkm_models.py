@@ -6,8 +6,9 @@ warnings.filterwarnings('ignore')
 import random
 from pathlib import Path
 import subprocess as sp
+import os
 
-DATA_PATH = Path("../data")
+DATA_PATH = Path(os.environ["HOT_DATA"])
 DATASETS_DIR = DATA_PATH/"classification/datasets/fasta_datasets"
 MODELS_DIR = DATA_PATH/"classification/models/lsgkm_models"
 MODELS_DIR.mkdir(exist_ok=True, parents=True)

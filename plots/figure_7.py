@@ -23,7 +23,7 @@ import os
 DATA_PATH = Path(os.environ["HOT_DATA"])
 LOCI_PATH = DATA_PATH / "log_bins"
 PLOTS_DIR = DATA_PATH / "plots/figure_7"
-PLOTS_DIR.mkdir(exist_ok=True)
+PLOTS_DIR.mkdir(exist_ok=True, parents=True)
 
 from HOTs import H1_subsamples
 
