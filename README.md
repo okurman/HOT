@@ -80,7 +80,7 @@ For questions about the figures in the supplemental figures please create an iss
 
 ### Generate figures individually <a name="gnrtfgrsind"></a>
 
-*****
+
 #### Figure 1: Definition of HOT loci and compositional analyses
 
 <img src="./src_figures/Figure1.png" width="480">
@@ -89,8 +89,6 @@ For questions about the figures in the supplemental figures please create an iss
 python plots/figure_1.py
 ```
 
-
-***
 #### Figure 2: PCA analysis of HOT loci.
 
 <img src="./src_figures/Figure2.png" width="400">
@@ -99,8 +97,6 @@ python plots/figure_1.py
 python plots/figure_2.py
 ```
 
-
-***
 #### Figure 3: Hi-C analysis of the HOT loci.
 
 <img src="./src_figures/Figure3.png" width="450">
@@ -109,8 +105,6 @@ python plots/figure_2.py
 python plots/figure_3.py
 ```
 
-
-***
 #### Figure 4: ChIP-seq signal strength analysis.
 
 <img src="./src_figures/Figure4.png" width="450">
@@ -119,8 +113,6 @@ python plots/figure_3.py
 python plots/figure_4.py
 ```
 
-
-***
 #### Figure 5: Evolutionary conservation scores (phastCons, phyloP) and classification analysis.
 
 <img src="./src_figures/Figure5.png" width="450">
@@ -140,7 +132,6 @@ By default, the data will be downloaded and processed for vertebrates. To re-cre
 For Figure5-D, please refer to `Classification analysis of HOT loci`
 
 
-***
 #### Figure 6: Functional analysis (GO enrichment, housekeeping, tissue-specificity).
 
 <img src="./src_figures/Figure6.png" width="450">
@@ -151,7 +142,6 @@ python plots/figure_6.py
 
 For Figure6-C refer to the main text and supplemental methods.
 
-***
 #### Figure 7: 
 
 <img src="./src_figures/Figure7.png" width="450">
@@ -160,7 +150,6 @@ For Figure6-C refer to the main text and supplemental methods.
 python plots/figure_7.py
 ```
 
-***
 #### Figure 8: 
 
 <img src="./src_figures/Figure8.png" width="450">
