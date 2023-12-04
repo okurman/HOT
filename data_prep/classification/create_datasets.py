@@ -20,7 +20,7 @@ get_loci_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.gz" % (x, i)) for
 get_prom_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.prom.gz" % (x, i)) for i in range(14)]
 get_enh_files = lambda x: [join(BINS_DIR, "%s_400_loci.%d.bed.noprom.gz" % (x, i)) for i in range(14)]
 
-FASTA_FILE = DATA_PATH/"src_files/hg19_files/hg19.fa.gz"
+FASTA_FILE = DATA_PATH/"src_files/hg19_files/hg19.fa"
 VAL_CHROMS = ["chr6", "chr7"]
 TEST_CHROMS = ["chr8", "chr9"]
 TRAIN_CHROMS = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15',
@@ -36,6 +36,7 @@ SAVE_DIR.mkdir(exist_ok=True, parents=True)
 (SAVE_DIR/"one_hot_datasets").mkdir(exist_ok=True)
 
 random.seed(1024)
+import multiprocessing as mp
 
 
 def create_dataset_binary(cl="HepG2", chrom2seq=None, seq_len=400, control_type="dhs"):
@@ -44,7 +45,7 @@ def create_dataset_binary(cl="HepG2", chrom2seq=None, seq_len=400, control_type=
 
     if not chrom2seq:
         print("Loading hg19")
-        chrom2seq = get_chrom2seq()
+        chrom2seq = get_chrom2seq(FASTA_FILE)
 
     hots_file = join(SAVE_DIR, f"control_regions/{cl}_hots_{seq_len}.bed.gz")
     controls_file = join(SAVE_DIR, f"control_regions/{cl}_{control_type}_controls_{seq_len}.bed.gz")
@@ -88,8 +89,8 @@ def create_dataset_binary(cl="HepG2", chrom2seq=None, seq_len=400, control_type=
                     print("skipping", i, r, len(seq))
                     continue
 
-            of.create_dataset(name="%s_data" % prefix, data=X, compression="gzip")
-            of.create_dataset(name="%s_labels" % prefix, data=Y, compression="gzip")
+            of.create_dataset(name="%s_data" % prefix, data=X)
+            of.create_dataset(name="%s_labels" % prefix, data=Y)
 
 
 def create_dataset_binary_features(cl="HepG2", chrom2seq=None, control_type="dhs"):
@@ -98,7 +99,7 @@ def create_dataset_binary_features(cl="HepG2", chrom2seq=None, control_type="dhs
 
     if not chrom2seq:
         print("Loading hg19")
-        chrom2seq = get_chrom2seq()
+        chrom2seq = get_chrom2seq(FASTA_FILE)
 
     hots_file = join(SAVE_DIR, f"control_regions/{cl}_hots_{seq_len}.bed.gz")
     controls_file = join(SAVE_DIR, f"control_regions/{cl}_{control_type}_controls_{seq_len}.bed.gz")
@@ -192,6 +193,7 @@ def create_dataset_binary_fasta(cl="HepG2", seq_len=400, control_type="dhs"):
     fnames = ["hots_train.fa", "hots_test.fa", "controls_train.fa", "controls_test.fa"]
     for fname, bed in zip(fnames, [hots_train, hots_test, controls_train, controls_test]):
         save_file = join(save_dir, fname)
+        print(save_file)
         bed.sequence(fi=str(FASTA_FILE), fo=save_file)
 
 
@@ -201,35 +203,41 @@ if __name__ == "__main__":
         download_hg19_fasta(FASTA_FILE)
         quit()
 
-    chrom2seq = get_chrom2seq(FASTA_FILE)
-
     cl = sys.argv[1]
-    # ctr = sys.argv[2]
-    # seq_len = int(sys.argv[3])
+    with mp.Pool() as pool:
+        results = []
+        for ctr in ["proms", "re", "dhs"]:
+
+            for seq_len in [400, 1000]:
+                _kwargs = {"cl": cl, "seq_len": seq_len, "control_type": ctr}
+                results.append(pool.apply_async(create_dataset_binary, (), _kwargs))
+                results.append(pool.apply_async(create_dataset_binary_fasta, (), _kwargs))
+
+            results.append(pool.apply_async(create_dataset_binary_features, (), _kwargs))
+
+        for r in results:
+            r.wait()
+        pool.close()
+        pool.join()
+
+    ####################################################################################################
+    #### To run individually, in a non-parallel way uncomment the following part:  #####################
+    ####################################################################################################
+
+    # chrom2seq = get_chrom2seq(FASTA_FILE)
+    # for ctr in ["proms", "re", "dhs"]:
+    #     print(f"\t{ctr}")
     #
+    #     print("\t\tone_hot dataset")
+    #     for seq_len in [400, 1000]:
+    #         print(f"\t\t\t{seq_len}")
+    #         create_dataset_binary(cl=cl, seq_len=seq_len, control_type=ctr, chrom2seq=chrom2seq)
     #
-    # create_dataset_binary(cl=cl, seq_len=seq_len, control_type=ctr, chrom2seq=chrom2seq)
-    # create_dataset_binary_fasta(cl=cl, seq_len=seq_len, control_type=ctr)
+    #     print("\t\tfasta dataset")
+    #     for seq_len in [400, 1000]:
+    #         print(f"\t\t\t{seq_len}")
+    #         create_dataset_binary_fasta(cl=cl, seq_len=seq_len, control_type=ctr)
     #
-    # if seq_len == 400:
+    #     # if seq_len == 400:
+    #     print("\t\tsequence features dataset")
     #     create_dataset_binary_features(cl=cl, chrom2seq=chrom2seq, control_type=ctr)
-    #
-    # quit()
-
-    # # for cl in ["HepG2", "K562"]:
-    # #     print(cl)
-    for ctr in ["proms", "re", "dhs"]:
-        print(f"\t{ctr}")
-
-        print("\t\tone_hot dataset")
-        for seq_len in [400, 1000]:
-            print(f"\t\t\t{seq_len}")
-            create_dataset_binary(cl=cl, seq_len=seq_len, control_type=ctr, chrom2seq=chrom2seq)
-
-        print("\t\tfasta dataset")
-        for seq_len in [400, 1000]:
-            print(f"\t\t\t{seq_len}")
-            create_dataset_binary_fasta(cl=cl, seq_len=seq_len, control_type=ctr)
-
-        print("\t\tsequence features dataset")
-        create_dataset_binary_features(cl=cl, chrom2seq=chrom2seq, control_type=ctr)

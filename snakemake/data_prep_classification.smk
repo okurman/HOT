@@ -24,10 +24,9 @@ rule all:
 		   region=["dhs", "proms", "re"],
 		   _len=LENS),
 		# feature datasets
-		expand(SAVE_DIR + "features_datasets/{cell_line}_binary_{region}_{_len}_features.hdf5",
+		expand(SAVE_DIR + "features_datasets/{cell_line}_binary_{region}_400_features.hdf5",
 		   cell_line=CELL_LINES,
-		   region=["dhs", "proms", "re"],
-		   _len=LENS)
+		   region=["dhs", "proms", "re"])
 
 
 rule create_datasets_hepg2:
@@ -41,9 +40,9 @@ rule create_datasets_hepg2:
 			region=["dhs", "proms", "re"],
 			_len=LENS),
 		# feature datasets
-		expand(SAVE_DIR + "features_datasets/HepG2_binary_{region}_{_len}_features.hdf5",
-			region=["dhs", "proms", "re"],
-			_len=LENS)
+		expand(SAVE_DIR + "features_datasets/HepG2_binary_{region}_400_features.hdf5",
+			region=["dhs", "proms", "re"])
+	threads: 4
 	params:
 		script = join(os.environ["HOT_CODE"], "data_prep/classification/create_datasets.py")
 	run:
@@ -62,9 +61,9 @@ rule create_datasets_k562:
 			region=["dhs", "proms", "re"],
 			_len=LENS),
 		# feature datasets
-		expand(SAVE_DIR + "features_datasets/K562_binary_{region}_{_len}_features.hdf5",
-			region=["dhs", "proms", "re"],
-			_len=LENS)
+		expand(SAVE_DIR + "features_datasets/K562_binary_{region}_400_features.hdf5",
+			region=["dhs", "proms", "re"])
+	threads: 4
 	params:
 		script = join(os.environ["HOT_CODE"], "data_prep/classification/create_datasets.py")
 	run:

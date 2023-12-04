@@ -7,7 +7,7 @@ LENS = [1000, 400]
 # noinspection SmkAvoidTabWhitespace
 
 SAVE_DIR = os.environ["HOT_DATA"] + "/classification/datasets/"
-FASTA_FILE = join(os.environ["HOT_DATA"], "src_files/hg19_files/hg19.fa.gz")
+FASTA_FILE = join(os.environ["HOT_DATA"], "src_files/hg19_files/hg19.fa")
 FASTA_DATASET_FILE_NAMES = ["controls_test.fa", "controls_train.fa", "hots_test.fa", "hots_train.fa"]
 
 

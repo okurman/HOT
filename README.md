@@ -9,7 +9,13 @@ Bethesda, MD 20894
 https://www.biorxiv.org/content/10.1101/2023.02.05.527203v1
 *********
 
-### Getting started
+
+# Table of contents
+1. [Getting started](#gts)
+2. [Define loci](#dfnlc)
+3. [Extract phastCons scores](#phst)
+
+### Getting started <a name="gts"></a>
 
 Processed data and source files are available in the Zenodo repository (https://zenodo.org/records/10251023).  
 Download the file `supplemental_files.tar.gz` and extract its content to the `data/src_files` directory
@@ -22,7 +28,7 @@ export HOT_DATA=$(readlink --canonicalize data)
 export HOT_CODE=$(pwd)
 ```
 
-### Define logarithmically binned DAP-bound loci and HOT loci 
+### Define logarithmically binned DAP-bound loci and HOT loci <a name="dfnlc"></a>
 
 `snakemake --cores 4 -s snakemake/data_prep.smk`
 
@@ -38,6 +44,8 @@ This will populate with files the following the directories:
 - `data/loci/`
 - `data/log_bins/`
 - `data/HOTs/`
+
+### Extract phastCons scores <a name="phst"></a>
 
 `snakemake -c4 -R extract_phastcons_scores`
 This will download phastCons scores and extract the conservation scores of the compared loci.

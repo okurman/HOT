@@ -5,6 +5,8 @@ from Bio import SeqIO
 import numpy as np
 import sys
 from pathlib import Path
+import subprocess as sp
+import tempfile
 import os
 DATA_PATH = Path(os.environ["HOT_DATA"])
 
@@ -12,7 +14,13 @@ DATA_PATH = Path(os.environ["HOT_DATA"])
 def download_hg19_fasta(save_file):
 
     url = "https://hgdownload.cse.ucsc.edu/goldenpath/hg19/bigZips/hg19.fa.gz"
-    urllib.request.urlretrieve(url, save_file)
+    print(f"Downloading hg19 fasta file from: {url}")
+    temp = tempfile.NamedTemporaryFile()
+    urllib.request.urlretrieve(url, temp.name)
+
+    print(f"Uncompressing to: {save_file}")
+    cmd = f"zcat {temp.name} > {save_file}"
+    sp.call(cmd, shell=True)
 
     return
 
