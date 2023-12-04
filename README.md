@@ -24,6 +24,7 @@ https://www.biorxiv.org/content/10.1101/2023.02.05.527203v1
    5. [Train sequence feature (GC, CG, CpG, GCI) models](#cls-features)
 
 ### Getting started <a name="gts"></a>
+___
 
 Processed data and source files are available in the Zenodo repository (https://zenodo.org/records/10251023).  
 Download the file `supplemental_files.tar.gz` and extract its content to the `data/src_files` directory
@@ -37,6 +38,7 @@ export HOT_CODE=$(pwd)
 ```
 
 ### Define logarithmically binned DAP-bound loci and HOT loci <a name="dfnlc"></a>
+___
 
 `snakemake --cores 4 -s snakemake/data_prep.smk`
 
@@ -54,6 +56,7 @@ This will populate with files the following the directories:
 - `data/HOTs/`
 
 ### Extract phastCons scores <a name="phst"></a>
+___
 
 `snakemake -c4 -R extract_phastcons_scores`
 This will download phastCons scores and extract the conservation scores of the compared loci.
@@ -72,6 +75,7 @@ done
 For re-creating the comparative analyses of conservation scores from different species, run the code snippet above by supplying `mammals` and `primates` values. 
 
 ### Generate figures in batch <a name="gnrtfgrsbtch"></a>
+___
 
 `snakemake --cores 5 -s snakemake/generate_figures.smk`
 
@@ -79,7 +83,7 @@ This will create a directory for each of 8 figures under `data/plots/` and gener
 For questions about the figures in the supplemental figures please create an issue on this repo or reach out to the authors.
 
 ### Generate figures individually <a name="gnrtfgrsind"></a>
-
+___
 
 #### Figure 1: Definition of HOT loci and compositional analyses
 
@@ -159,7 +163,7 @@ python plots/figure_8.py
 ```
 
 ### Classification analysis <a name="cls"></a>
-
+___
 All the pre-trained models used in the analysis are available in the archived file in Zenodo repository:
 -`models_trained.tar.gz`
 
