@@ -80,7 +80,7 @@ For questions about the figures in the supplemental figures please create an iss
 
 ### Generate figures individually <a name="gnrtfgrsind"></a>
 
-***
+*****
 #### Figure 1: Definition of HOT loci and compositional analyses
 
 <img src="./src_figures/Figure1.png" width="480">

@@ -224,7 +224,7 @@ if __name__ == "__main__":
     ####################################################################################################
     #### To run individually, in a non-parallel way uncomment the following part:  #####################
     ####################################################################################################
-    
+
     # chrom2seq = get_chrom2seq(FASTA_FILE)
     # for ctr in ["proms", "re", "dhs"]:
     #     print(f"\t{ctr}")
