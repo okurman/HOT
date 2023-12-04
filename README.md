@@ -15,7 +15,7 @@ Processed data and source files are available in the Zenodo repository (https://
 Download the file `supplemental_files.tar.gz` and extract its content to the `data/src_files` directory
 
 Create a python virtual environment and set up the running environment: \
-```
+```bash
 conda env create -f environment.yml
 conda activate hot_env
 export HOT_DATA=$(readlink --canonicalize data)
@@ -51,9 +51,8 @@ For questions about the figures in the supplemental figures please create an iss
 
 <img src="./src_figures/Figure1.png" width="480">
 
-```
-cd plots
-python figure_1.py
+```bash
+python plots/figure_1.py
 ```
 
 
@@ -62,9 +61,8 @@ python figure_1.py
 
 <img src="./src_figures/Figure2.png" width="400">
 
-```
-cd plots
-python figure_2.py
+```bash
+python plots/figure_2.py
 ```
 
 
@@ -73,9 +71,8 @@ python figure_2.py
 
 <img src="./src_figures/Figure3.png" width="450">
 
-```
-cd plots
-python figure_3.py
+```bash
+python plots/figure_3.py
 ```
 
 
@@ -84,9 +81,8 @@ python figure_3.py
 
 <img src="./src_figures/Figure4.png" width="450">
 
-```
-cd plots
-python figure_4.py
+```bash
+python plots/figure_4.py
 ```
 
 
@@ -95,16 +91,14 @@ python figure_4.py
 
 <img src="./src_figures/Figure5.png" width="450">
 
-```
-cd data_pred
-python phastCons.py
+```bash
+python data_prep/phastCons.py
 ```
 
 Note that this will first create a folder `phastCons` and download the phastCons files from UCSC Genome Browser Database and proceed to extract respective phastCons scores for each bin in `log_bins` directory. This will run approximately for 30 minutes with enough RAM available.
 
-```
-cd plots
-python figure_5.py
+```bash
+python plots/figure_5.py
 ```
 
 By default, the data will be downloaded and processed for vertebrates. To re-create the conservation score analyses for placental mammals and primates, re-run the scripts `data_prep/phastCons.py`, `plots/figure_5.py` with parameter values `placentalMammals` and `primates` 
@@ -117,9 +111,8 @@ For Figure5-D, please refer to `Classification analysis of HOT loci`
 
 <img src="./src_figures/Figure6.png" width="450">
 
-```
-cd plots
-python figure_6.py`
+```bash
+python plots/figure_6.py
 ```
 
 For Figure6-C refer to the main text and supplemental methods.
@@ -129,9 +122,8 @@ For Figure6-C refer to the main text and supplemental methods.
 
 <img src="./src_figures/Figure7.png" width="450">
 
-```
-cd plots
-python figure_7.py
+```bash
+python plots/figure_7.py
 ```
 
 ***
@@ -139,13 +131,21 @@ python figure_7.py
 
 <img src="./src_figures/Figure8.png" width="450">
 
-```
-cd plots
-python figure_8.py
+```bash
+python plots/figure_8.py
 ```
 
 ### Classification analysis
 
+All the pre-trained models used in the analysis are available in the archived file in Zenodo repository:
+-`models_trained.tar.gz`
+
+The classification evaluation results (auROC and auPRC values) of each of the classification experiments are available in the file:
+`data/src_files/classification_results.txt`
+
+Below are the instructions for re-generating the whole classification analysis.
+
+#### Prepare the datasets
 First, generate the control regions used in the study for classification analysis with:
 
 `snakemake --cores 2 -s snakemake/data_prep_control_regions.smk`
@@ -157,16 +157,16 @@ Then, create the datasets with:
 `snakemake --cores 2 -s snakemake/data_prep_classification.smk`
 
 This will create and populate the directories: 
- - `data/classification/datasets/fasta_datasets`
- - `data/classification/datasets/features_datasets`
- - `data/classification/datasets/one_hot_datasets`
+- data/classification/datasets/fasta_datasets
+- data/classification/datasets/features_datasets
+- data/classification/datasets/one_hot_datasets
 
 #### CNN classification
 
 CNNs were trained using old versions of Tensorflow/Keras so we recommend using the singularity container provided in the Zenodo repository.
 To train models, run:
 
-```
+```bash
 cl=HepG2
 ctr=dhs
 seq_len=400
@@ -199,3 +199,46 @@ do
     done
 done
 ```
+
+#### SVMs trained on DNA sequences
+
+This will require the presence of the LS-GKM tool in the system path. Download and install it from:
+https://github.com/Dongwon-Lee/lsgkm
+
+Then run the following command to iteratively train all combinations of datasets:
+```bash
+for cl in HepG2 K562:
+do
+    for ctr in dhs re proms
+    do
+        for seq_len in 400 1000
+        do
+            python classification/train_lsgkm_models.py -cl $cl -ctr $ctr -len $seq_len
+        done
+    done
+done
+```
+
+The results will be saved under the path:
+`classification/models/lsgkm_models`
+
+To train the models with different kernel versions supply `-kernel` parameter with the values from the range `1 - 7`. Default version will run with `kernel=4`, i.e. "gapped-kmers"
+
+#### Classification using the sequence features
+
+This part uses sequence features of GC, CG, CpG and CGI island coverage, instead of the direct sequences.
+
+Run the following command to iteratively train all combinations of datasets:
+```bash
+for cl in HepG2 K562:
+do
+    for ctr in dhs re proms
+    do    
+      python classification/train_feature_models.py -cl $cl -ctr $ctr -model logreg -feature -1  
+    done
+done
+```
+
+`-feature` parameter will indicate on which feature to train the models. Value -1 will ensure to train on all of the features at once. 
+
+`-model` parameter can have self-explanatory `logreg` and `svm` valaues. In case of training the SVM models, the `-kernel` parameter can also be supplied to use different kernels with values `linear, rbf (radial basis function), poly (polynomial), signoid` 
