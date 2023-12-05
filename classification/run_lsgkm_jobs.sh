@@ -25,7 +25,7 @@ do
         #    -b y \
         #    run_python_script.sh train_lsgkm_models.py -cl $cl -ctr $ctr -len $len -kernel $kernel
 
-        train_lsgkm_models.py -cl $cl -ctr $ctr -len $len -kernel $kernel
+        ./train_lsgkm_models.py -cl $cl -ctr $ctr -len $len -kernel $kernel
 
       done
     done

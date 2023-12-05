@@ -1,5 +1,8 @@
 #!/bin/bash
 
-p=/net/intdev/devdcode/sanjar/condaland/miniconda/envs/py3.9/bin/python
+# provide a path to python when submitting to a cluster.
+#p=[..]/python
+
+p=`which python`
 
 $p "$@"

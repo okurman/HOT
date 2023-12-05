@@ -7,7 +7,6 @@ from os.path import join
 from pybedtools import BedTool
 import numpy as np
 import gzip
-import urllib.request
 
 DATA_PATH = Path(os.environ["HOT_DATA"])
 PHASTCONS_DIR = DATA_PATH / "phastCons"
@@ -71,57 +70,59 @@ def load_scores(chrom="chr8", score="phastCons", species="vertebrate", all_chrom
     return chrom2pos2score
 
 
-def extract_phastcons_for_bins(species="vertebrate"):
+def extract_phastcons_for_bins(cell_line="HepG2", species="vertebrate"):
 
-    for ch_no in range(22, 0, -1):
-        chrom = "chr%d" % ch_no
+    chroms = [f"chr{i}" for i in range(1, 23)] + ["chrX", "chrY"]
+
+    for chrom in chroms:
         print(chrom)
 
         pos2phylop = load_scores(chrom=chrom, score="phastCons", species=species)[chrom]
 
-        for cell_line in ["H1", "HepG2", "K562"]:
-            print(cell_line)
+        for loci_files in [get_prom_files(cell_line), get_enh_files(cell_line)]:
 
-            for loci_files in [get_prom_files(cell_line), get_enh_files(cell_line)]:
+            phylop_files = [PHASTCONS_DIR/Path(f).name.replace(".gz", f".{species}.phastcons.gz") for f in loci_files]
 
-                phylop_files = [str(f).replace(".gz", f".{species}.phastcons.gz") for f in loci_files]
+            for locus_file, phylop_file in zip(loci_files, phylop_files):
 
-                for locus_file, phylop_file in zip(loci_files, phylop_files):
+                print("\t\t" + Path(locus_file).name)
 
-                    if os.path.exists(phylop_file):
-                        continue
+                chrom_bed = [r for r in BedTool(locus_file) if r.chrom == chrom]
 
-                    chrom_bed = [r for r in BedTool(locus_file) if r.chrom == chrom]
+                with gzip.open(phylop_file, "at") as outf:
+                    for r in chrom_bed:
+                        locus_scores = [pos2phylop[p] for p in range(r.start, r.stop)]
+                        locus_scores = np.average([s for s in locus_scores])
 
-                    with gzip.open(phylop_file, "at") as outf:
-                        for r in chrom_bed:
-                            locus_scores = [pos2phylop[p] for p in range(r.start, r.stop)]
-                            locus_scores = np.average([s for s in locus_scores])
+                        tf_starts = [int(_) for _ in r.fields[6].split(",")]
+                        tf_stops = [int(_) for _ in r.fields[7].split(",")]
 
-                            tf_starts = [int(_) for _ in r.fields[6].split(",")]
-                            tf_stops = [int(_) for _ in r.fields[7].split(",")]
+                        tfbs_positions = []
+                        for _start, _stop in set([(a, b) for a, b in zip(tf_starts, tf_stops)]):
+                            tfbs_positions += range(_start, _stop)
 
-                            tfbs_positions = []
-                            for _start, _stop in set([(a, b) for a, b in zip(tf_starts, tf_stops)]):
-                                tfbs_positions += range(_start, _stop)
-
-                            tfbs_sc = np.average([pos2phylop[p] for p in set(tfbs_positions)])
-                            out_line = "%s\t%d\t%d\t%f\t%f\n" % (r.chrom, r.start, r.stop, locus_scores, tfbs_sc)
-                            outf.write(out_line)
+                        tfbs_sc = np.average([pos2phylop[p] for p in set(tfbs_positions)])
+                        out_line = "%s\t%d\t%d\t%f\t%f\n" % (r.chrom, r.start, r.stop, locus_scores, tfbs_sc)
+                        outf.write(out_line)
 
 
 def extract_phastcons_for_HOT_and_buddies(cl="HepG2", species="vertebrate"):
 
     src_files = [DATA_PATH / f"HOTs/{cl}_HOTs.bed.gz",
                  DATA_PATH / f"HOTs/{cl}_HOTs.proms.bed.gz",
-                 DATA_PATH / f"HOTs/{cl}_HOTs.noproms.bed.gz"]
+                 DATA_PATH / f"HOTs/{cl}_HOTs.noproms.bed.gz",
+                 DATA_PATH / f"src_files/{cl}_enhancers_DHS_H3K27ac.bed.gz",
+                 DATA_PATH / "src_files/hg19_files/knownGene.exons.merged.bed.gz"]
 
-    enh_file = DATA_PATH / f"src_files/{cl}_enhancers_DHS_H3K27ac.bed.gz"
-    if enh_file.exists():
-        src_files.append(enh_file)
+    save_files = [PHASTCONS_DIR/f.name.replace(".gz", f".{species}.phastcons.gz") for f in src_files]
 
-    save_files = [str(f).replace(".gz", f".{species}.phastcons.gz") for f in src_files]
-    save_files = [gzip.open(_, "wt") for _ in save_files]
+    files_pool = [[in_f, gzip.open(out_f, "wt")]
+                  for in_f, out_f in zip(src_files, save_files)
+                  if in_f.exists() and not out_f.exists()]
+
+    print("Extracting phastCons for:")
+    for [f, _] in files_pool:
+        print(f)
 
     chroms = ["chr%d" % _ for _ in range(1, 23)]
     chroms += ["chrX", "chrY"]
@@ -130,8 +131,8 @@ def extract_phastcons_for_HOT_and_buddies(cl="HepG2", species="vertebrate"):
         print("chrom: " + chrom)
         pos2phylop = load_scores(chrom=chrom, species=species)[chrom]
 
-        for src_file, of in zip(src_files, save_files):
-
+        for src_file, of in files_pool:
+            print(f"\t{src_file}")
             input_bed = BedTool(str(src_file))
             chrom_bed = BedTool([r for r in input_bed if r.chrom == chrom]).sort()
             for r in chrom_bed:
@@ -147,6 +148,10 @@ if __name__ == "__main__":
 
     cl = sys.argv[1]
     species = sys.argv[2]
+
+    assert species in ["vertebrate", "placentalMammals", "primates"]
+
+    extract_phastcons_for_bins(cl, species)
 
     print(f"Extracting phastCons data for: {cl} {species}")
     extract_phastcons_for_HOT_and_buddies(cl, species)

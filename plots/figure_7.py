@@ -71,11 +71,11 @@ def conservation_scores_H1(save_file):
 	data = []
 	for cl in ["HepG2", "K562", "H1"]:
 		for i in range(10, 14):
-			f = str(LOCI_PATH / f"{cl}_400_loci.{i}.bed.noprom.vertebrate.phastcons.gz")
+			f = str(DATA_PATH / "phastCons" / f"{cl}_400_loci.{i}.bed.noprom.vertebrate.phastcons.gz")
 			scores = np.loadtxt(f, usecols=(3))
 			[data.append([cl, "enh", _s]) for _s in scores]
 
-			f = str(LOCI_PATH / f"{cl}_400_loci.{i}.bed.prom.vertebrate.phastcons.gz")
+			f = str(DATA_PATH / "phastCons" / f"{cl}_400_loci.{i}.bed.prom.vertebrate.phastcons.gz")
 			scores = np.loadtxt(f, usecols=(3))
 			[data.append([cl, "prom", _s]) for _s in scores]
 	df = pd.DataFrame(data=data, columns=["cell_line", "category", "score"])

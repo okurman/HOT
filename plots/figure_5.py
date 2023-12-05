@@ -20,6 +20,7 @@ import seaborn as sns
 import os
 DATA_PATH = Path(os.environ["HOT_DATA"])
 PLOTS_DIR = DATA_PATH / "plots/figure_5"
+PHASTCONS_DIR = DATA_PATH/"phastCons"
 PLOTS_DIR.mkdir(exist_ok=True, parents=True)
 
 
@@ -27,7 +28,7 @@ def plot_phastcons_distribution_log_bins(save_file, species="vertebrate"):
 
 	line_parser = lambda x: x.split("\t")[3]
 	file_amender = lambda x: x.replace(".gz", f".{species}.phastcons.gz")
-	df = plots_data_factory.load_bins_to_df(line_parser=line_parser, file_amender=file_amender)
+	df = plots_data_factory.load_bins_to_df(line_parser=line_parser, file_amender=file_amender, src_dir=PHASTCONS_DIR)
 
 	plots_data_factory.plot_categorical_worker(df, y_label="phastCons", plot_type="lineplot", save_file=save_file,
 							leg_loc="upper left", palette="colorblind", figsize=(5, 3.8))
@@ -35,9 +36,9 @@ def plot_phastcons_distribution_log_bins(save_file, species="vertebrate"):
 
 def load_categorized_phastcons_data(species="vertebrate"):
 
-	hots = BedTool(str(DATA_PATH/f"HOTs/HepG2_HOTs.proms.bed.{species}.phastcons.gz"))
-	regular_enhancers = BedTool(str(DATA_PATH/f"src_files/HepG2_enhancers_DHS_H3K27ac.bed.{species}.phastcons.gz"))
-	exons = BedTool(str(DATA_PATH/f"src_files/hg19_files/knownGene.exons.merged.bed.{species}.phastcons.gz"))
+	hots = BedTool(str(PHASTCONS_DIR/f"HepG2_HOTs.proms.bed.{species}.phastcons.gz"))
+	regular_enhancers = BedTool(str(PHASTCONS_DIR/f"HepG2_enhancers_DHS_H3K27ac.bed.{species}.phastcons.gz"))
+	exons = BedTool(str(PHASTCONS_DIR/f"knownGene.exons.merged.bed.{species}.phastcons.gz"))
 
 	data = []
 	for name, scores_bed in zip(["exons", "regular enhancers", "HOT"],

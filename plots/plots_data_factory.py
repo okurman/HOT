@@ -200,7 +200,7 @@ def plot_categorical_worker(df,
     plt.savefig(save_file)
 
 
-def load_bins_to_df(line_parser, file_amender=lambda x: x, zero_comp=False, coefficient=1):
+def load_bins_to_df(line_parser, file_amender=lambda x: x, zero_comp=False, coefficient=1, src_dir=None):
 
     tmp_file = tempfile.NamedTemporaryFile()
     columns = ["cell_line", "bin", "category", "value"]
@@ -217,6 +217,9 @@ def load_bins_to_df(line_parser, file_amender=lambda x: x, zero_comp=False, coef
                 enh_file = enh_files[bin]
                 for cat, f in zip(["promoters", "enhancers"], [prom_file, enh_file]):
 
+                    if src_dir:
+                        f = Path(src_dir)/Path(f).name
+                    
                     try:
                         lines = gzip.open(f, "rt").readlines()
                     except:
