@@ -219,7 +219,7 @@ do
         for seq_len in 400 1000
         do
             name=$cl"_binary_"$ctr"_"$seq_len
-            data_file=/classification/datasets/one_hot_datasets/$name.hdf5
+            data_file=classification/datasets/one_hot_datasets/$name.hdf5
             save_dir=classification/models/CNN_models/$name
             
             singularity exec --nv data/src_files/src_files/singularity_container.sif python \ 
@@ -268,6 +268,6 @@ do
 done
 ```
 
-`-feature` parameter will indicate on which feature to train the models. Value -1 will ensure to train on all of the features at once. 
+`-feature` parameter will indicate on which feature to train the models. Value `-1` will ensure to train on all of the features at once. 
 
 `-model` parameter can have self-explanatory `logreg` and `svm` values. In case of training the SVM models, the `-kernel` parameter can also be supplied to use different kernels with values `linear, rbf (radial basis function), poly (polynomial), sigmoid` 
