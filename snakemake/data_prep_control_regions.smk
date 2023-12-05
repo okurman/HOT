@@ -24,7 +24,7 @@ rule all:
 
 rule download_fasta:
 	output:
-		join(os.environ["HOT_DATA"], "src_files/hg19_files/hg19.fa.gz")
+		join(os.environ["HOT_DATA"], "src_files/hg19_files/hg19.fa")
 	script:
 		join(os.environ["HOT_CODE"], "data_prep/classification/create_datasets.py")
 
