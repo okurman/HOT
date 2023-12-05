@@ -26,7 +26,7 @@ https://www.biorxiv.org/content/10.1101/2023.02.05.527203v1
 ### Getting started <a name="gts"></a>
 ___
 
-Processed data and source files are available in the Zenodo repository (https://zenodo.org/records/10251023).  
+Processed data and source files are available in the Zenodo repository (https://zenodo.org/records/10267278).  
 Download the file `supplemental_files.tar.gz` and extract its content to the `data/src_files` directory
 
 Create a python virtual environment and set up the running environment: \
