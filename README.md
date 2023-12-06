@@ -26,15 +26,24 @@ https://www.biorxiv.org/content/10.1101/2023.02.05.527203v1
 ### Getting started <a name="gts"></a>
 ___
 
-Processed data and source files are available in the Zenodo repository (https://zenodo.org/records/10267278).  
-Download the file `supplemental_files.tar.gz` and extract its content to the `data/src_files` directory
+Clone this codebase to a directory with at least 50 GB space and download the source files from Zenodo:
 
-Create a python virtual environment and set up the running environment: \
 ```bash
+
+git clone https://github.com/okurman/HOT.git
+mv HOT code
+mkdir data
+
+export HOT_DATA=$(readlink --canonicalize data)
+export HOT_CODE=$(readlink --canonicalize code)
+
+wget https://zenodo.org/records/10267278/files/supplemental_files.tar.gz 
+tar -xzf supplemental_files.tar.gz
+mv src_files data/
+
+cd code
 conda env create -f environment.yml
 conda activate hot_env
-export HOT_DATA=$(readlink --canonicalize data)
-export HOT_CODE=$(pwd)
 ```
 
 ### Define logarithmically binned DAP-bound loci and HOT loci <a name="dfnlc"></a>
@@ -55,24 +64,6 @@ This will populate with files the following the directories:
 - `data/log_bins/`
 - `data/HOTs/`
 
-### Extract phastCons scores <a name="phst"></a>
-___
-
-`snakemake -c4 -R extract_phastcons_scores`
-This will download phastCons scores and extract the conservation scores of the compared loci.
-
-The HOT loci in three cell lines will be extracted to `data/HOTs/` with the names `HepG2_HOTs.bed.gz`, `K562_HOTs.bed.gz` and `H1_HOTs.bed.gz`.
-
-To run these commands directly:
-```bash
-python data_prep/phastCons_download.py
-for cl in HepG2 K562
-do
-  python data_prep/phastCons.py $cl vertebrates
-done
-```
-
-For re-creating the comparative analyses of conservation scores from different species, run the code snippet above by supplying `mammals` and `primates` values. 
 
 ### Generate figures in batch <a name="gnrtfgrsbtch"></a>
 ___
