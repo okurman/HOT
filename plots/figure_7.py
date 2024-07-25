@@ -106,6 +106,49 @@ def conservation_scores_H1(save_file):
 	plt.savefig(save_file)
 
 
+def conservation_scores_H1_vs_cls(df):
+
+	# data = []
+	# for cl in ["HepG2", "K562", "H1"]:
+	# 	for i in range(10, 14):
+	# 		f = str(DATA_PATH / "phastCons" / f"{cl}_400_loci.{i}.bed.noprom.vertebrate.phastcons.gz")
+	# 		scores = np.loadtxt(f, usecols=(3))
+	# 		[data.append([cl, "enh", _s]) for _s in scores]
+
+	# 		f = str(DATA_PATH / "phastCons" / f"{cl}_400_loci.{i}.bed.prom.vertebrate.phastcons.gz")
+	# 		scores = np.loadtxt(f, usecols=(3))
+	# 		[data.append([cl, "prom", _s]) for _s in scores]
+	# df = pd.DataFrame(data=data, columns=["cell_line", "category", "score"])
+	# return df
+	
+	# for cl in ["HepG2", "K562", "H1"]:
+	# 	prom_scores = df[(df["cell_line"]==cl) & (df["category"]=="prom")]["score"].values
+	# 	enh_scores = df[(df["cell_line"]==cl) & (df["category"]=="enh")]["score"].values
+	# 	significance = mannwhitneyu(prom_scores, enh_scores)
+	# 	ratio = np.mean(prom_scores)/np.mean(enh_scores)
+	# 	print(f"cell line: {cl}, prom/enh= {ratio}, significance={significance}")
+
+	plt.close()
+	plt.figure(figsize=(4, 3))
+
+	ax = plt.gca()
+	# g = sns.boxplot(x="cell_line", y="score", hue="category", data=df, showfliers=False, ax=ax)
+	g = sns.boxplot(x="cell_line", y="score", data=df, showfliers=False, ax=ax, color=plt.cm.tab10.colors[0])
+
+	# l = g.legend(loc="upper center", ncol=2)
+	# l.get_texts()[0].set_text('enhancers')
+	# l.get_texts()[1].set_text('promoters')
+	ax.set_ylim([0, 1])
+	ax.grid(axis="y", alpha=0.2)
+	ax.set_xlabel("")
+	ax.set_ylabel("phastCons score")
+
+	plt.tight_layout()
+	save_file = PLOTS_DIR / "Figure7_d_new.pdf"
+	print(save_file)
+	plt.savefig(save_file)
+
+
 if __name__ == "__main__":
 
 	save_file = PLOTS_DIR/"Figure7_a.pdf"
