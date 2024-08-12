@@ -1,13 +1,13 @@
 Codebase of the manuscript:
 
-## "Sequence characteristics and an accurate model of high-occupancy target loci in the human genome 
+## "Functional characteristics and an accurate model of high-occupancy target loci in the human genome 
 Sanjarbek Hudaiberdiev, Ivan Ovcharenko 
 
 NCBI, NLM, NIH
 Bethesda, MD 20894
 
 
-https://www.biorxiv.org/content/10.1101/2023.02.05.527203v1
+https://www.biorxiv.org/content/10.1101/2023.02.05.527203v4
 *********
 
 
@@ -38,7 +38,7 @@ mkdir data
 export HOT_DATA=$(readlink --canonicalize data)
 export HOT_CODE=$(readlink --canonicalize code)
 
-wget https://zenodo.org/records/10267278/files/supplemental_files.tar.gz 
+wget https://zenodo.org/records/13271790/files/supplemental_files.tar.gz
 tar -xzf supplemental_files.tar.gz
 mv src_files data/
 
